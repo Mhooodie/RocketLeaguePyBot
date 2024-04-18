@@ -2,10 +2,11 @@ from util.common import *
 
 # This file holds all of the mechanical tasks, called "routines", that the bot can do
 
-class jumper():
-    def run(self, agent):
-        if agent.time % 5 == 0:
-            agent.controller.jump = True
+# Jumper made at start
+# class jumper():
+#     def run(self, agent):
+#         if agent.time % 5 == 0:
+#             agent.controller.jump = True
 
 #class kill():
     #Demo routine
