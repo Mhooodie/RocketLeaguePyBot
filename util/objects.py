@@ -152,7 +152,7 @@ class GoslingAgent(BaseAgent):
         self.debug_lines = [line for line in self.debug_lines if line.name != name]
         #Wouldn't this just overwrite the var debug_lines setting it equal to itself if the line.name is not equal to name passed in initially for line?
 
-    def clear_debug_line(self, name):
+    def clear_debug_lines(self):
         self.debug_lines = []
 
     def draw_debug_lines(self):
