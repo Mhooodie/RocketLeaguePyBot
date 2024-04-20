@@ -11,6 +11,23 @@ class GeneralIroh(GoslingAgent):
         if self.intent is not None:
             self.debug_intent() # On Screen Debug | Shows Intent
             return
+
+        # blue = 0
+        blue_right_corner = [-2048, -2560]
+        blue_left_corner = [2048, -2560]
+        blue_back_right = [-256.0, -3840]
+        blue_back_left = [256.0, -3840]
+        blue_back_center = [0.0, -4608]
+
+        # orange = 1
+        orange_right_corner = [2048, 2560]
+        orange_left_corner = [-2048, 2560]
+        orange_back_right = [256.0, 3840]
+        orange_back_left = [-256.0, 3840]
+        orange_back_center = [0.0, 4608]
+
+        print(self.team) # Tells what team I am on (DELETE THIS LATER)
+        
         if self.kickoff_flag:
             self.clear_debug_lines() # Clear Debug Lines on Kickoff
             self.set_intent(kickoff())
