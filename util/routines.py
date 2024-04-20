@@ -456,7 +456,7 @@ class short_shot():
         target_vector = -ball_to_target.clamp(left_vector, right_vector)
         final_target = agent.ball.location + (target_vector*(distance/2))
 
-        # Some adjustment to the final target to ensure we don't try to dirve through any goalposts to reach it
+        # Some adjustment to the final target to ensure we don't try to drive through any goalposts to reach it
         if abs(agent.me.location[1]) > 5150:
             final_target[0] = cap(final_target[0], -750, 750)
 

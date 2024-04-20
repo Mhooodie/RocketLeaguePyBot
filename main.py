@@ -19,19 +19,26 @@ class GeneralIroh(GoslingAgent):
             self.debugtext = 'Kicking Off' # On Screen Debug | Shows debugtext
             print('Kicking Off') # Log
             return
+        targets = {
+            'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
+            'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post)
+        }
+        hits = find_hits(self, targets)
         target_boost = self.get_closest_large_boost()
-        if target_boost is not None and self.me.boost < 33:
+        if target_boost is not None and self.me.boost < 20:
             self.set_intent(goto(target_boost.location))
             self.debugtext = 'Getting Boost'
             print ('Getting Boost')
             return
         if self.infront_of_ball():
             self.set_intent(goto(self.friend_goal.location))
-            self.debugtext = 'Moving Back'
-            print('Moving Back')
+            self.debugtext = 'Moving Back: Infront of Ball'
+            print('Moving Back: Infront of Ball')
             return
-        if self.me.boost > 33:
-            self.set_intent(short_shot(self.foe_goal.location))
-            self.debugtext = 'Shooting'
-            print ('Shooting')
+        if len(hits['opponent_goal']) > 0:
+            self.set_intent(hits['opponent_goal'][0])
             return
+        if len(hits['team_goal']) > 0:
+            self.set_intent(hits['team_goal'][0])
+            return
+        self.debugtext = 'Shooting'

@@ -122,7 +122,10 @@ class GoslingAgent(BaseAgent):
         return self.controller
 
     def get_closest_large_boost(self):
-        available_boosts = [boost for boost in self.boosts if boost.large and boost.active]
+        available_boosts = [boost for boost in self.boosts if boost.large
+            and boost.active
+            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
+        ] # Snagged this from Corbin's code, change later to account for picking up boost during general movement
         closest_boost = None
         closest_distance = 10000
         for boost in available_boosts:
@@ -133,11 +136,14 @@ class GoslingAgent(BaseAgent):
         return closest_boost
 
     def infront_of_ball(self):
-        me_to_goal = (self.me.location - self.foe_goal.location).magnitude()
-        ball_to_goal = (self.ball.location - self.foe_goal.location).magnitude()
-        if me_to_goal < ball_to_goal + 1000:
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 50:
+            print(f'Infront of Ball: me: {me_to_goal} < ball: {ball_to_goal}')
             return True
+        print(f'Behind Ball')
         return False
+    
     def print_debug(self):
         white = self.renderer.white()
         self.renderer.draw_string_2d(10, 150, 3, 3, self.debugtext, white)
