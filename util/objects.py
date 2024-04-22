@@ -136,14 +136,40 @@ class GoslingAgent(BaseAgent):
             and boost.active
             and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
         ]
-        closest_boost = None
+        closest_boost_large = None
         closest_distance = 10000
         for boost in available_boosts:
             distance = (self.me.location - boost.location).magnitude()
-            if closest_boost is None or distance < closest_distance:
-                closest_boost = boost
+            if closest_boost_large is None or distance < closest_distance:
+                closest_boost_large = boost
                 closest_distance = distance
-        return closest_boost
+        return closest_boost_large
+    
+    def get_closest_small_boost(self):
+        available_boosts = [boost for boost in self.boosts if boost.large == False
+            and boost.active
+            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
+        ]
+        closest_boost_small = None
+        closest_distance = 10000
+        for boost in available_boosts:
+            distance = (self.me.location - boost.location).magnitude()
+            if closest_boost_small is None or distance < closest_distance:
+                closest_boost_small = boost
+                closest_distance = distance
+        return closest_boost_small
+    
+    def get_closest_boost(self, closest_boost_large, closest_boost_small):
+        if closest_boost_large > closest_boost_small:
+            closest_boost = closest_boost_large # If large is closer makes large closest boost
+            return closest_boost
+        elif closest_boost_small > closest_boost_large:
+            closest_boost = closest_boost_small # If small is closer makes small closest boost
+            return closest_boost
+        else:
+            closest_boost = closest_boost_large # If neither, default to large
+            return closest_boost
+
 
     def infront_of_ball(self):
         me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)

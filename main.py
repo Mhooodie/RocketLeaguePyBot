@@ -11,56 +11,79 @@ class GeneralIroh(GoslingAgent):
 
     # Start
         self.print_debug() # On Screen Debug | Shows debugtext
-        if self.intent is not None: # Checks to see if there is intent, if there is it keeps it until cleared.
-            self.debug_intent() # On Screen Debug | Shows Intent
-            return
-        
-    # Main Functions
-        def KickoffInitiation(self, kickoff_type):
-            if self.kickoff_flag is not None:
-                if kickoff_type == 0: # Wide Diagnonal / Corners
-                    self.set_intent(kickoff())
-                    self.debugtext = 'Kickoff off from: Wide Diagnonal' # Debug
-                    print('Kickoff off from: Wide Diagnonal') # Log
-                    return
-                elif kickoff_type == 1: # Short Diagonal / Back Sides
-                    self.set_intent(kickoff())
-                    self.debugtext = 'Kicking off from: Short Diagonal' # Debug
-                    print('Kicking off from: Short Diagonal') # Log
-                    return
-                elif kickoff_type == 2: # Middle / Back Middle
-                    self.set_intent(kickoff())
-                    self.debugtext = 'Kicking off from: Middle' # Debug
-                    print('Kicking off from: Middle') # Log
-                    return
-                else:
-                    self.set_intent(kickoff())
-                    print('Error KickoffInitiation Cannot recognize Kickoff Position')
-                    return # FIX ISSUE WHERE I CAN CALL INTENT KICKOFF IN "if self.kickoff_flag:" AND IT WORKS BUT IF I DO IT THROUGH THE FUNCTION IT BREAKS, ALSO A LOT OF THINGS SHOWING AS UNKNOWN?
-
-    # Kickoff Logic
-        if self.kickoff_flag:
-            kickoff_type = self.getKickoffPosition(self.me.location) # Gets Kickoff Location
-            KickoffInitiation(self, kickoff_type) # Starts Kick off Routine
-            self.clear_debug_lines() # Clear Debug Lines on Kickoff
-            self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
-            self.add_debug_line('kickoff_to_goal', self.ball.location, self.foe_goal.location, [0, 0, 255])
-            print('Kicking Off') # Log
-            #self.send_quick_chat(False, quick_chat='Wow') # Test Quickchat, test later with custom chats FIX LATER
-            return
-
-    # Game Logic (Split Later)
+        ball_local = self.me.local(self.ball.location - self.me.location)
+        self.onright = True
         targets = {
             'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
             'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post)
         } # Hit targets in range of left to right, (left, right)
         hits = find_hits(self, targets)
         target_boost = self.get_closest_large_boost()
-        if target_boost is not None and self.me.boost < 20: # Gets boost if boost under 20 and conditions in function are met
-            self.set_intent(goto(target_boost.location))
-            self.debugtext = 'Getting Boost' # Debug
-            print ('Getting Boost') # Log
+        target_boost2 = self.get_closest_small_boost()
+        #target_boost3 = self.get_closest_boost(target_boost, target_boost2) # Figure out how to find closest boost BIG OR SMALL
+        #ball_to_opponent = abs()
+        #ball_to_me = abs()
+        #me_to_oponent = abs()
+        if self.intent is not None: # Checks to see if there is intent, if there is it keeps it until cleared.
+            self.debug_intent() # On Screen Debug | Shows Intent
             return
+  
+    # Main Functions
+        def KickoffInitiation(self, kickoff_type, target_boost2):
+            print('Kickoff Initialized')
+            if kickoff_type == 0: # Wide Diagnonal / Corners
+                if ball_local[1] > 0:
+                    self.debugtext = 'Kickoff off from: Right Wide Diagonal' # Debug
+                    print('Kickoff off from: Right Wide Diagnonal') # Log
+                    self.set_intent(kickoff())
+                    return
+                else:
+                    self.debugtext = 'Kickoff off from: Left Wide Diagonal' # Debug
+                    print('Kickoff off from: Left Wide Diagnonal') # Log
+                    self.set_intent(kickoff())
+                    return   
+            elif kickoff_type == 1: # Short Diagonal / Back Sides
+                if ball_local[1] < 0:
+                    self.debugtext = 'Kicking off from: Right Short Diagonal' # Debug
+                    print('Kicking off from: Right Short Diagonal') # Log
+                    self.set_intent(goto(target_boost2.location))
+                    self.set_intent(kickoff())
+                    return
+                else:
+                    self.debugtext = 'Kicking off from: Left Short Diagonal' # Debug
+                    print('Kicking off from: Left Short Diagonal') # Log
+                    self.set_intent(goto(target_boost2.location))
+                    self.set_intent(kickoff())
+                    return  
+            elif kickoff_type == 2: # Middle / Back Middle
+                self.debugtext = 'Kicking off from: Middle' # Debug
+                print('Kicking off from: Middle') # Log
+                self.set_intent(kickoff())
+                return
+            else:
+                print('Error KickoffInitiation Cannot recognize Kickoff Position')
+                self.set_intent(kickoff())
+                return
+
+    # Kickoff Logic
+        if self.kickoff_flag:
+            kickoff_type = self.getKickoffPosition(self.me.location) # Gets Kickoff Location
+            KickoffInitiation(self, kickoff_type, target_boost2) # Starts Kick off Routine
+            self.clear_debug_lines() # Clear Debug Lines on Kickoff
+            self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
+            self.add_debug_line('kickoff_to_goal', self.ball.location, self.foe_goal.location, [0, 0, 255])
+            print(f'Kicking Off | Type: {kickoff_type}') # Log
+            #self.send_quick_chat(False, quick_chat='GG') # Test Quickchat, test later with custom chats FIX LATER
+            return
+
+    # Game Logic (Split Later)
+        # if I am closer to ball then enemy after kickoff short shot
+        if target_boost is not None and self.me.boost < 20: # Gets large boost if boost under 20 and conditions in function are met
+            self.set_intent(goto(target_boost.location))
+            self.debugtext = 'Getting Large Boost' # Debug
+            print ('Getting Large Boost') # Log
+            #print (f'Closest Boost ANY: {target_boost3}')
+            return 
         if self.infront_of_ball(): # If infront of ball move back
             self.set_intent(goto(self.friend_goal.location))
             self.debugtext = 'Moving Back: Infront of Ball' # Debug
