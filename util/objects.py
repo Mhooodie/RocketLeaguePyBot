@@ -1,4 +1,5 @@
 import math
+from util.routines import *
 import rlbot.utils.structures.game_data_struct as game_data_struct
 from rlbot.agents.base_agent import BaseAgent, SimpleControllerState
 
@@ -120,6 +121,33 @@ class GoslingAgent(BaseAgent):
         self.renderer.end_rendering()
         # send our updated controller back to rlbot
         return self.controller
+
+    def getKickoffPosition(self, vec):
+        kickoff_locations = [[2048, 2560], [256, 3848], [0, 4608]]
+        # 0 == wide diagonal, 1 == short diagonal, 2 == middle
+        if abs(vec[0]) >= 350:
+            return 0
+        elif abs(vec[0]) > 5:
+            return 1
+        else:
+            return 2    
+
+    def KickoffInitiation(self, kickoff_type):
+        if kickoff_type == 0: # Wide Diagnonal / Corners
+            self.set_intent(kickoff())
+            self.debugtext = 'Kickoff off from: Wide Diagnonal' # Debug
+            print('Kickoff off from: Wide Diagnonal') # Log
+        elif kickoff_type == 1: # Short Diagonal / Back Sides
+            self.set_intent(kickoff())
+            self.debugtext = 'Kicking off from: Short Diagonal' # Debug
+            print('Kicking off from: Short Diagonal') # Log
+        elif kickoff_type == 2: # Middle / Back Middle
+            self.set_intent(kickoff())
+            self.debugtext = 'Kicking off from: Middle' # Debug
+            print('Kicking off from: Middle') # Log
+        else:
+            self.set_intent(kickoff())
+            print('Error KickoffInitiation Cannot recognize Kickoff Position')
 
     def get_closest_large_boost(self):
         available_boosts = [boost for boost in self.boosts if boost.large
