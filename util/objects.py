@@ -139,9 +139,7 @@ class GoslingAgent(BaseAgent):
         me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
         ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
         if me_to_goal < ball_to_goal + 50:
-            print(f'Infront of Ball: me: {me_to_goal} < ball: {ball_to_goal}')
             return True
-        print(f'Behind Ball')
         return False
     
     def print_debug(self):
