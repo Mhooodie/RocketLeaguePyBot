@@ -1,5 +1,4 @@
 import math
-from util.routines import *
 import rlbot.utils.structures.game_data_struct as game_data_struct
 from rlbot.agents.base_agent import BaseAgent, SimpleControllerState
 
@@ -132,28 +131,11 @@ class GoslingAgent(BaseAgent):
         else:
             return 2    
 
-    def KickoffInitiation(self, kickoff_type):
-        if kickoff_type == 0: # Wide Diagnonal / Corners
-            self.set_intent(kickoff())
-            self.debugtext = 'Kickoff off from: Wide Diagnonal' # Debug
-            print('Kickoff off from: Wide Diagnonal') # Log
-        elif kickoff_type == 1: # Short Diagonal / Back Sides
-            self.set_intent(kickoff())
-            self.debugtext = 'Kicking off from: Short Diagonal' # Debug
-            print('Kicking off from: Short Diagonal') # Log
-        elif kickoff_type == 2: # Middle / Back Middle
-            self.set_intent(kickoff())
-            self.debugtext = 'Kicking off from: Middle' # Debug
-            print('Kicking off from: Middle') # Log
-        else:
-            self.set_intent(kickoff())
-            print('Error KickoffInitiation Cannot recognize Kickoff Position')
-
     def get_closest_large_boost(self):
         available_boosts = [boost for boost in self.boosts if boost.large
             and boost.active
             and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
-        ] # Snagged this from Corbin's code, change later to account for picking up boost during general movement
+        ]
         closest_boost = None
         closest_distance = 10000
         for boost in available_boosts:
