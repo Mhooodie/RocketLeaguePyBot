@@ -8,7 +8,7 @@ If Rocket_League Installed == true
   2. python -m pip install rlbot_gui rlbot eel
   3. python -c "from rlbot_gui import gui; gui.start()"
   4. OPTIONAL ( Make .bat file with step 3 command in it)
-  5. Run Step 3 and search for bot name should be (General Iroh)
+  5. Run Step 3, once it loads click add and load folder, then navigate to the folder with general Iroh and load it
   6. Drag bot to orange and blue team
   7. Run program
     

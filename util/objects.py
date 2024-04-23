@@ -15,6 +15,7 @@ class GoslingAgent(BaseAgent):
         self.foes = []
         # This holds the carobject for our agent
         self.me = car_object(self.index)
+        self.setup = True
 
         self.debugtext = ''
         self.debug_lines = []
@@ -134,7 +135,8 @@ class GoslingAgent(BaseAgent):
     def get_closest_large_boost(self):
         available_boosts = [boost for boost in self.boosts if boost.large
             and boost.active
-            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
+            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude() and (self.foes[0].location - self.ball.location).magnitude()
+            > (self.me.location - self.ball.location).magnitude()
         ]
         closest_boost_large = None
         closest_distance = 10000
@@ -148,7 +150,8 @@ class GoslingAgent(BaseAgent):
     def get_closest_small_boost(self):
         available_boosts = [boost for boost in self.boosts if boost.large == False
             and boost.active
-            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude()
+            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude() and (self.foes[0].location - self.ball.location).magnitude()
+            > (self.me.location - self.ball.location).magnitude()
         ]
         closest_boost_small = None
         closest_distance = 10000
@@ -159,17 +162,17 @@ class GoslingAgent(BaseAgent):
                 closest_distance = distance
         return closest_boost_small
     
-    def get_closest_boost(self, closest_boost_large, closest_boost_small):
-        if closest_boost_large > closest_boost_small:
-            closest_boost = closest_boost_large # If large is closer makes large closest boost
-            return closest_boost
-        elif closest_boost_small > closest_boost_large:
-            closest_boost = closest_boost_small # If small is closer makes small closest boost
-            return closest_boost
-        else:
-            closest_boost = closest_boost_large # If neither, default to large
-            return closest_boost
-
+    # def get_closest_boost(self, closest_boost_large, closest_boost_small): # NOT SURE IF EVEN WORK
+    #     if closest_boost_large > closest_boost_small:
+    #         closest_boost = closest_boost_large # If large is closer makes large closest boost
+    #         return closest_boost
+    #     elif closest_boost_small > closest_boost_large:
+    #         closest_boost = closest_boost_small # If small is closer makes small closest boost
+    #         return closest_boost
+    #     else:
+    #         closest_boost = closest_boost_large # If neither, default to large
+    #         return closest_boost
+    
 
     def infront_of_ball(self):
         me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
@@ -257,7 +260,6 @@ class car_object:
     def up(self):
         # A vector pointing up relative to the cars orientation. Its magnitude is 1
         return self.orientation.up
-
 
 class ball_object:
     def __init__(self):
