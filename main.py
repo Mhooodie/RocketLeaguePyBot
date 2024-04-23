@@ -60,6 +60,7 @@ class GeneralIroh(GoslingAgent):
                 print('Error KickoffInitiation Cannot recognize Kickoff Position')
                 self.set_intent(kickoff())
                 return
+            
     # Start
         self.print_debug() # On Screen Debug | Shows debugtext
         if self.intent is not None: # Checks to see if there is intent, if there is it keeps it until cleared.
