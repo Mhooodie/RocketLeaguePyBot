@@ -14,7 +14,8 @@ class GeneralIroh(GoslingAgent):
         self.onright = True # Using to setup flips for speed kickoff like Kamael
         targets = {
             'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
-            'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post)
+            'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post),
+            'center': (Vector3(-3584, 0, 73), Vector3(3584, 0, 73))
         }
         hits = find_hits(self, targets)
         target_boost = self.get_closest_large_boost()
@@ -23,11 +24,13 @@ class GeneralIroh(GoslingAgent):
         ball_to_opponent = abs(self.ball.location - self.foes[0].location).magnitude()
         ball_to_me = abs(self.ball.location - self.foes[0].location).magnitude()
         ball_to_teamgoal = abs(self.ball.location - self.friend_goal.location).magnitude()
+        ball_to_opponentgoal = abs(self.ball.location - self.foe_goal.location).magnitude()
         me_to_oponent = abs(self.me.location - self.foes[0].location).magnitude()
         me_to_teamgoal = abs(self.me.location - self.friend_goal.location).magnitude()
+        opponent_to_teamgoal = abs(self.foes[0].location - self.friend_goal.location).magnitude()
 
     # Setup Functions'
-        def KickoffInitiation(self, kickoff_type):
+        def KickoffInitiation(kickoff_type):
             print('Kickoff Initialized')
             if kickoff_type == 0: # Wide Diagnonal / Corners
                 if ball_local[1] > 0:
@@ -61,6 +64,21 @@ class GeneralIroh(GoslingAgent):
                 self.set_intent(kickoff())
                 return
             
+        def demo_murder(target_boost):
+            if self.me.boost > 90:
+                self.set_intent(goto(self.foes[0].location))
+            else:
+                while True:
+                    self.set_intent(goto(target_boost.location))
+                    if self.me.boost > 90:
+                        self.set_intent(goto(self.foes[0].location))
+                        return
+                    
+        def demo_practical():
+            if self.me.boost > 90 and ball_to_teamgoal < me_to_teamgoal > opponent_to_teamgoal > ball_to_teamgoal:
+                self.set_intent(goto(self.foes[0].location))
+                return
+            
     # Start
         self.print_debug() # On Screen Debug | Shows debugtext
         if self.intent is not None: # Checks to see if there is intent, if there is it keeps it until cleared.
@@ -70,7 +88,7 @@ class GeneralIroh(GoslingAgent):
     # Kickoff Logic
         if self.kickoff_flag:
             kickoff_type = self.getKickoffPosition(self.me.location) # Gets Kickoff Location
-            KickoffInitiation(self, kickoff_type) # Starts Kick off Routine
+            KickoffInitiation(kickoff_type) # Starts Kick off Routine
             self.clear_debug_lines() # Clear Debug Lines on Kickoff
             self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
             self.add_debug_line('kickoff_to_goal', self.ball.location, self.foe_goal.location, [0, 0, 255])
@@ -79,7 +97,9 @@ class GeneralIroh(GoslingAgent):
             return
 
     # Game Logic (Split Later)
-        # if I am closer to ball then enemy after kickoff short shot
+        if ball_to_me < ball_to_opponent and self.me.boost > 40:
+            self.set_intent(short_shot(self.foe_goal.location))
+            return
         if target_boost is not None and self.me.boost < 20: # Gets large boost if boost under 20 and conditions in function are met
             self.set_intent(goto(target_boost.location))
             self.debugtext = 'Getting Large Boost' # Debug
@@ -96,8 +116,14 @@ class GeneralIroh(GoslingAgent):
             self.debugtext = 'Shooting' # Debug
             print('Shooting') # Log
             return
+        if len(hits['center']) > 0 and ball_to_teamgoal < ball_to_opponentgoal and me_to_teamgoal < ball_to_teamgoal:
+            self.set_intent(hits['center'][0])
+            self.debugtext = 'Centering Ball' # Debug
+            print('Centering Ball') # Log
+            return
         if len(hits['team_goal']) > 0: # Shoot at sides of my goal if shot
             self.set_intent(hits['team_goal'][0])
             self.debugtext = 'Defending' # Debug
             print('Defending') # Log
             return   
+        demo_practical()
