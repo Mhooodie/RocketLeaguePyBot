@@ -14,7 +14,7 @@
               <li>Run the following commands:</li>
               <code>python -m pip install rlbot_gui rlbot eel</code>
               <code>python -c "from rlbot_gui import gui; gui.start()"</code>
-              <li>(Optional) Create a .bat file with the command from step 3 and execute it.</li>
+              <li>(Optional) Create a .bat file with the "python -c "from rlbot_gui import gui; gui.start()" command and execute it.</li>
               <li>Once the GUI loads, click "Add" and load the folder containing your bot.</li>
               <li>Drag the bot to the orange and blue team.</li>
               <li>Run the program.</li>
