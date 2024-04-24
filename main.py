@@ -15,7 +15,7 @@ class GeneralIroh(GoslingAgent):
         targets = {
             'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
             'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post), # Defending on enemy side for some reason
-            'center': (Vector3(side(-3584), 0, 73), Vector3(side(3584), 0, 73)) 
+            'center': (Vector3(-3584*side(self.team), 0, 73), Vector3(3584*side(self.team), 0, 73)) 
         }
         hits = find_hits(self, targets)
         target_boost = self.get_closest_large_boost()
@@ -36,28 +36,28 @@ class GeneralIroh(GoslingAgent):
                 if ball_local[1] > 0:
                     self.debugtext = 'Kickoff off from: Right Wide Diagonal' # Debug
                     print('Kickoff off from: Right Wide Diagnonal') # Log
-                    self.set_intent(kickoff())
+                    self.set_intent(kickoff_wide())
                     return
                 else:
                     self.debugtext = 'Kickoff off from: Left Wide Diagonal' # Debug
                     print('Kickoff off from: Left Wide Diagnonal') # Log
-                    self.set_intent(kickoff())
-                    return   
+                    self.set_intent(kickoff_wide())
+                    return
             elif kickoff_type == 1: # Short Diagonal / Back Sides
                 if ball_local[1] < 0:
                     self.debugtext = 'Kicking off from: Right Short Diagonal' # Debug
                     print('Kicking off from: Right Short Diagonal') # Log
-                    self.set_intent(kickoff())
+                    self.set_intent(kickoff_short())
                     return
                 else:
                     self.debugtext = 'Kicking off from: Left Short Diagonal' # Debug
                     print('Kicking off from: Left Short Diagonal') # Log
-                    self.set_intent(kickoff())
-                    return  
+                    self.set_intent(kickoff_short())
+                    return
             elif kickoff_type == 2: # Middle / Back Middle
                 self.debugtext = 'Kicking off from: Middle' # Debug
                 print('Kicking off from: Middle') # Log
-                self.set_intent(kickoff())
+                self.set_intent(kickoff_center())
                 return
             else:
                 self.debugtext = 'Error KickoffInitiation Cannot recognize Kickoff Position' # Debug
@@ -69,7 +69,7 @@ class GeneralIroh(GoslingAgent):
             if self.me.boost > 80 and ball_to_teamgoal < me_to_teamgoal > opponent_to_teamgoal > ball_to_teamgoal:
                 self.debugtext = 'BLOW EM TO SMITHERINES!' # Debug
                 print('BLOW EM TO SMITHERINES!') # Log
-                self.set_intent(goto(self.foes[0].location))
+                self.set_intent(goto(self.foes[0].location)) # defaultThrottle(agent, 2300)
                 return
             
     # Start
@@ -86,7 +86,7 @@ class GeneralIroh(GoslingAgent):
             self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
             self.add_debug_line('kickoff_to_goal', self.ball.location, self.foe_goal.location, [0, 0, 255])
             print(f'Kicking Off | Type: {kickoff_type}') # Log
-            #self.send_quick_chat(False, quick_chat='GG') # Test Quickchat, test later with custom chats FIX LATER
+            #self.send_quick_chat(False, QuickChats.Compliments_IGotIt) # Test Quickchat, test later with custom chats FIX LATER
             return
 
     # Game Logic (Split Later)
@@ -123,7 +123,7 @@ class GeneralIroh(GoslingAgent):
                 print('Target Neutralized | Shooting') # Log
                 return
             else:
-                self.set_intent(goto(self.friend_goal.location))                 
+                self.set_intent(goto(self.friend_goal.location))
                 self.debugtext = 'Target Down | Repositioning' # Debug
                 print('Target Down | Repositioning') # Log  
                 return
