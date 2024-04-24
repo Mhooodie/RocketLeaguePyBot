@@ -224,43 +224,6 @@ class goto():
         elif agent.me.airborne:
             agent.set_intent(recovery(self.target))
 
-class goto_kickoff():
-    def __init__(self, target, vector=None, direction=1):
-        self.target = target
-        self.vector = vector
-        self.direction = direction
-
-    def run(self, agent):
-        defaultThrottle(agent, 2300, self.direction)
-        car_to_target = self.target - agent.me.location
-        distance_remaining = car_to_target.flatten().magnitude()
-
-        agent.line(self.target - Vector3(0, 0, 500),
-                   self.target + Vector3(0, 0, 500), [255, 0, 255])
-
-        if self.vector != None:
-            side_of_vector = sign(self.vector.cross(
-                (0, 0, 1)).dot(car_to_target))
-            car_to_target_perp = car_to_target.cross(
-                (0, 0, side_of_vector)).normalize()
-            adjustment = car_to_target.angle(
-                self.vector) * distance_remaining / 3.14
-            final_target = self.target + (car_to_target_perp * adjustment)
-        else:
-            final_target = self.target
-
-        if abs(agent.me.location[1]) > 5150:
-            final_target[0] = cap(final_target[0], -750, 750)
-
-        local_target = agent.me.local(final_target - agent.me.location)
-
-        angles = defaultPD(agent, local_target, self.direction)
-
-        if distance_remaining < 350:
-            agent.set_intent(kickoff_short2())
-
-
-
 class goto_boost():
     # very similar to goto() but designed for grabbing boost
     # if a target is provided the bot will try to be facing the target as it passes over the boost
@@ -428,6 +391,41 @@ class jump_shot():
                 agent.controller.pitch = self.p if abs(self.p) > 0.2 else 0
                 agent.controller.yaw = self.y if abs(self.y) > 0.3 else 0
 
+class goto_kickoff():
+    def __init__(self, target, vector=None, direction=1):
+        self.target = target
+        self.vector = vector
+        self.direction = direction
+
+    def run(self, agent):
+        defaultThrottle(agent, 2300, self.direction)
+        car_to_target = self.target - agent.me.location
+        distance_remaining = car_to_target.flatten().magnitude()
+
+        agent.line(self.target - Vector3(0, 0, 500),
+                   self.target + Vector3(0, 0, 500), [255, 0, 255])
+
+        if self.vector != None:
+            side_of_vector = sign(self.vector.cross(
+                (0, 0, 1)).dot(car_to_target))
+            car_to_target_perp = car_to_target.cross(
+                (0, 0, side_of_vector)).normalize()
+            adjustment = car_to_target.angle(
+                self.vector) * distance_remaining / 3.14
+            final_target = self.target + (car_to_target_perp * adjustment)
+        else:
+            final_target = self.target
+
+        if abs(agent.me.location[1]) > 5150:
+            final_target[0] = cap(final_target[0], -750, 750)
+
+        local_target = agent.me.local(final_target - agent.me.location)
+
+        angles = defaultPD(agent, local_target, self.direction)
+
+        if distance_remaining < 350:
+            # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
+            agent.set_intent(kickoff_short2())
 
 class kickoff():
     # A simple 1v1 kickoff that just drives up behind the ball and dodges
@@ -445,25 +443,25 @@ class kickoff():
 class kickoff_wide(): # Corner | Need to figure out which side, left or right
     def run(self, agent):
         print('Running: Kickoff_Wide')
-        target = agent.ball.location
+        # target = agent.ball.location
         agent.set_intent(kickoff())
 
 class kickoff_short(): # Back Sides | Need to figure out which side, left or right
     def run(self, agent): # Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
         print('Running: Kickoff_Short')
-        target = agent.ball.location
-        defaultThrottle(agent, 2300)
-        agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0)))
+        agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0))) # Flips into boost / before
 
 class kickoff_short2():
     def run(self, agent):
         print('Running: Kickoff_Short2')
+        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0) # Add target to flip at -LOCAL-
+        local_target = agent.me.local(target - agent.me.location) # Used in normal kickoff to determine how close to ball / when flip       
         agent.set_intent(kickoff()) # add speed flip shit here
 
 class kickoff_center(): # Back Center
     def run(self, agent):
         print('Running: Kickoff_Center')
-        target = agent.ball.location
+        # target = agent.ball.location
         agent.set_intent(kickoff())
 
 

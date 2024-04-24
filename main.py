@@ -11,7 +11,6 @@ class GeneralIroh(GoslingAgent):
 
     # Setup Var's
         ball_local = self.me.local(self.ball.location - self.me.location)
-        self.onright = True # Using to setup flips for speed kickoff like Kamael
         targets = {
             'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
             'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post), # Defending on enemy side for some reason
