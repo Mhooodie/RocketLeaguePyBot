@@ -239,7 +239,6 @@ class goto_kickoff():
                    self.target + Vector3(0, 0, 500), [255, 0, 255])
 
         if self.vector != None:
-            # See commends for adjustment in jump_shot or aerial for explanation
             side_of_vector = sign(self.vector.cross(
                 (0, 0, 1)).dot(car_to_target))
             car_to_target_perp = car_to_target.cross(
@@ -258,7 +257,7 @@ class goto_kickoff():
         angles = defaultPD(agent, local_target, self.direction)
 
         if distance_remaining < 350:
-            agent.clear_intent()
+            agent.set_intent(kickoff_short2())
 
 
 
@@ -453,8 +452,13 @@ class kickoff_short(): # Back Sides | Need to figure out which side, left or rig
     def run(self, agent): # Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
         print('Running: Kickoff_Short')
         target = agent.ball.location
-        defaultThrottle(agent, 2300) # Main issue TO FIX is it changes kickoffs for some reason
+        defaultThrottle(agent, 2300)
         agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0)))
+
+class kickoff_short2():
+    def run(self, agent):
+        print('Running: Kickoff_Short2')
+        agent.set_intent(kickoff()) # add speed flip shit here
 
 class kickoff_center(): # Back Center
     def run(self, agent):
