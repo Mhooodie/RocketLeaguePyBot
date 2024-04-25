@@ -541,6 +541,7 @@ class kickoff_short2():
             print(agent.me.local)
             agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
             # agent.set_intent(kickoff()) # add speed flip shit here go left flip right
+            # Bit different than left kickoff for some reason?
             return
         else:
             print('Speedflip Left') # Log
@@ -551,7 +552,9 @@ class kickoff_short2():
 
 class kickoff_center(): # Back Center
     def run(self, agent):
-        agent.set_intent(kickoff())
+        agent.set_intent(goto_kickoff(Vector3(-1024*side(agent.team), 2816*side(agent.team), 0)))
+        # agent.set_intent(kickoff()) # change direction to 20 degrees then flip
+        # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
 
 class kickoff_recover(): # Recovery
     def __init__(self, target=None):
