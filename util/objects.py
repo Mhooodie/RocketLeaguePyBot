@@ -16,7 +16,6 @@ class GoslingAgent(BaseAgent):
         # This holds the carobject for our agent
         self.me = car_object(self.index)
         self.setup = True
-
         self.debugtext = ''
         self.debug_lines = []
 
@@ -124,6 +123,7 @@ class GoslingAgent(BaseAgent):
 
     def getKickoffPosition(self, vec):
         kickoff_locations = [[2048, 2560], [256, 3848], [0, 4608]]
+        self.ball_local = self.me.local(self.ball.location - self.me.location)
         # 0 == wide diagonal, 1 == short diagonal, 2 == middle
         if abs(vec[0]) >= 350:
             return 0

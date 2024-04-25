@@ -10,7 +10,6 @@ class GeneralIroh(GoslingAgent):
     def run(self):
 
     # Setup Var's
-        ball_local = self.me.local(self.ball.location - self.me.location)
         targets = {
             'opponent_goal': (self.foe_goal.left_post, self.foe_goal.right_post),
             'team_goal': (self.friend_goal.right_post, self.friend_goal.left_post), # Defending on enemy side for some reason
@@ -32,7 +31,7 @@ class GeneralIroh(GoslingAgent):
         def KickoffInitiation(kickoff_type):
             print('Kickoff Initialized')
             if kickoff_type == 0: # Wide Diagnonal / Corners
-                if ball_local[1] > 0:
+                if self.ball_local[1] > 0:
                     self.debugtext = 'Kickoff off from: Right Wide Diagonal' # Debug
                     print('Kickoff off from: Right Wide Diagnonal') # Log
                     self.set_intent(kickoff_wide())
@@ -43,7 +42,7 @@ class GeneralIroh(GoslingAgent):
                     self.set_intent(kickoff_wide())
                     return
             elif kickoff_type == 1: # Short Diagonal / Back Sides
-                if ball_local[1] < 0:
+                if self.ball_local[1] < 0:
                     self.debugtext = 'Kicking off from: Right Short Diagonal' # Debug
                     print('Kicking off from: Right Short Diagonal') # Log
                     self.set_intent(kickoff_short())
@@ -65,10 +64,10 @@ class GeneralIroh(GoslingAgent):
                 return
             
         def demo():
-            if self.me.boost > 80 and ball_to_teamgoal < me_to_teamgoal > opponent_to_teamgoal > ball_to_teamgoal:
+            if self.me.boost > 80 and ball_to_teamgoal < opponent_to_teamgoal < me_to_teamgoal:
                 self.debugtext = 'BLOW EM TO SMITHERINES!' # Debug
                 print('BLOW EM TO SMITHERINES!') # Log
-                self.set_intent(goto(self.foes[0].location)) # defaultThrottle(agent, 2300)
+                self.set_intent(goto_demo(self.foes[0].location)) # defaultThrottle(agent, 2300)
                 return
             
     # Start

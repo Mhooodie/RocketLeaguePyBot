@@ -390,6 +390,46 @@ class jump_shot():
                 # simulating a deadzone so that the dodge is more natural
                 agent.controller.pitch = self.p if abs(self.p) > 0.2 else 0
                 agent.controller.yaw = self.y if abs(self.y) > 0.3 else 0
+class goto_demo():
+    def __init__(self, target, vector=None, direction=1):
+        self.target = target
+        self.vector = vector
+        self.direction = direction
+
+    def run(self, agent):
+        car_to_target = self.target - agent.me.location
+        distance_remaining = car_to_target.flatten().magnitude()
+
+        agent.line(self.target - Vector3(0, 0, 500),
+                   self.target + Vector3(0, 0, 500), [255, 0, 255])
+
+        if self.vector != None:
+            side_of_vector = sign(self.vector.cross(
+                (0, 0, 1)).dot(car_to_target))
+            car_to_target_perp = car_to_target.cross(
+                (0, 0, side_of_vector)).normalize()
+            adjustment = car_to_target.angle(
+                self.vector) * distance_remaining / 3.14
+            final_target = self.target + (car_to_target_perp * adjustment)
+        else:
+            final_target = self.target
+
+        if abs(agent.me.location[1]) > 5150:
+            final_target[0] = cap(final_target[0], -750, 750)
+
+        local_target = agent.me.local(final_target - agent.me.location)
+
+        angles = defaultPD(agent, local_target, self.direction)
+
+        if distance_remaining < 3000:
+            # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
+            defaultThrottle(agent, 2300, self.direction)
+            if agent.foes[0].demolished:
+                agent.clear_intent()
+            elif agent.me.boost < 10:
+                agent.clear_intent()
+            else:
+                agent.set_intent(goto_demo(agent.foes[0].location))
 
 class goto_kickoff():
     def __init__(self, target, vector=None, direction=1):
@@ -432,7 +472,7 @@ class kickoff():
     # misses the boost on the slight-offcenter kickoffs haha
     def run(self, agent):
         target = agent.ball.location + Vector3(0, 200*side(agent.team), 0)
-        local_target = agent.me.local(target - agent.me.location)
+        local_target = agent.me.local(target - agent.me.location) # Used in normal kickoff to determine how close to ball / when flip
         defaultPD(agent, local_target)
         defaultThrottle(agent, 2300)
         if local_target.magnitude() < 650:
@@ -442,26 +482,30 @@ class kickoff():
             
 class kickoff_wide(): # Corner | Need to figure out which side, left or right
     def run(self, agent):
-        print('Running: Kickoff_Wide')
-        # target = agent.ball.location
         agent.set_intent(kickoff())
 
 class kickoff_short(): # Back Sides | Need to figure out which side, left or right
-    def run(self, agent): # Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
-        print('Running: Kickoff_Short')
-        agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0))) # Flips into boost / before
+    def run(self, agent):
+        agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0)))
+
+# Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
+# Flips into boost / before boost
 
 class kickoff_short2():
     def run(self, agent):
-        print('Running: Kickoff_Short2')
-        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0) # Add target to flip at -LOCAL-
-        local_target = agent.me.local(target - agent.me.location) # Used in normal kickoff to determine how close to ball / when flip       
-        agent.set_intent(kickoff()) # add speed flip shit here
+        ball_local = agent.ball_local
+        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0) # Choose where I want to flip to then add target to flip at -Local target I think?-
+        if ball_local[1] < 0:
+            print('Speedflip Right') # Log
+            agent.set_intent(kickoff()) # add speed flip shit here
+            return
+        else:
+            print('Speedflip Left') # Log
+            agent.set_intent(kickoff()) # add speed flip shit here
+            return       
 
 class kickoff_center(): # Back Center
     def run(self, agent):
-        print('Running: Kickoff_Center')
-        # target = agent.ball.location
         agent.set_intent(kickoff())
 
 
