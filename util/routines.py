@@ -538,13 +538,13 @@ class kickoff_short2():
         if ball_local[1] < 0:
             print('Speedflip Right') # Log
             print(agent.me.local)
-            agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), False))
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
             # agent.set_intent(kickoff()) # add speed flip shit here go left flip right
             return
         else:
             print('Speedflip Left') # Log
             print(agent.me.local)
-            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1024*side(agent.team), 0, 0) - agent.me.location), False))
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1024*side(agent.team), 0, 0) - agent.me.location), True))
             # agent.set_intent(kickoff()) # add speed flip shit here go right flip left
             return       
 
