@@ -464,7 +464,7 @@ class goto_kickoff():
 
         angles = defaultPD(agent, local_target, self.direction)
 
-        if distance_remaining < 350:
+        if distance_remaining < 650: # was 350
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
             agent.set_intent(kickoff_short2())
 
@@ -482,6 +482,7 @@ class kickoff_flip(): # Flip
         self.counter = 0
 
     def run(self, agent):
+        defaultThrottle(agent, 2300)
         if self.time == -1:
             elapsed = 0
             self.time = agent.time
@@ -497,7 +498,7 @@ class kickoff_flip(): # Flip
             agent.controller.pitch = self.pitch
             agent.controller.yaw = self.yaw
         else:
-            agent.set_intent(kickoff_recover())
+            agent.set_intent(kickoff_recover(agent.ball.location))
 
 class kickoff():
     # A simple 1v1 kickoff that just drives up behind the ball and dodges
@@ -552,7 +553,7 @@ class kickoff_center(): # Back Center
     def run(self, agent):
         agent.set_intent(kickoff())
 
-class kickoff_recover(): # Revovery
+class kickoff_recover(): # Recovery
     def __init__(self, target=None):
         self.target = target
 
@@ -566,6 +567,7 @@ class kickoff_recover(): # Revovery
         defaultPD(agent, local_target)
         agent.controller.throttle = 1
         if not agent.me.airborne:
+            defaultThrottle(agent, 2300)
             agent.clear_intent() # Change later to last stage and clear | Check where goes after recover
 
 class recovery():
