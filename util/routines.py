@@ -390,6 +390,7 @@ class jump_shot():
                 # simulating a deadzone so that the dodge is more natural
                 agent.controller.pitch = self.p if abs(self.p) > 0.2 else 0
                 agent.controller.yaw = self.y if abs(self.y) > 0.3 else 0
+
 class goto_demo():
     def __init__(self, target, vector=None, direction=1):
         self.target = target
@@ -467,6 +468,37 @@ class goto_kickoff():
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
             agent.set_intent(kickoff_short2())
 
+class kickoff_flip(): # Flip
+    # Flip takes a vector in local coordinates and flips/dodges in that direction
+    # cancel causes the flip to cancel halfway through, which can be used to half-flip
+    def __init__(self, vector, cancel=False):
+        self.vector = vector.normalize()
+        self.pitch = abs(self.vector[0]) * -sign(self.vector[0])
+        self.yaw = abs(self.vector[1]) * sign(self.vector[1])
+        self.cancel = cancel
+        # the time the jump began
+        self.time = -1
+        # keeps track of the frames the jump button has been released
+        self.counter = 0
+
+    def run(self, agent):
+        if self.time == -1:
+            elapsed = 0
+            self.time = agent.time
+        else:
+            elapsed = agent.time - self.time
+        if elapsed < 0.15:
+            agent.controller.jump = True
+        elif elapsed >= 0.15 and self.counter < 3:
+            agent.controller.jump = False
+            self.counter += 1
+        elif elapsed < 0.3 or (not self.cancel and elapsed < 0.9):
+            agent.controller.jump = True
+            agent.controller.pitch = self.pitch
+            agent.controller.yaw = self.yaw
+        else:
+            agent.set_intent(kickoff_recover())
+
 class kickoff():
     # A simple 1v1 kickoff that just drives up behind the ball and dodges
     # misses the boost on the slight-offcenter kickoffs haha
@@ -477,8 +509,7 @@ class kickoff():
         defaultThrottle(agent, 2300)
         if local_target.magnitude() < 650:
             # flip towards opponent goal
-            agent.set_intent(
-                flip(agent.me.local(agent.foe_goal.location - agent.me.location)))
+            agent.set_intent(flip(agent.me.local(agent.foe_goal.location - agent.me.location)))
             
 class kickoff_wide(): # Corner | Need to figure out which side, left or right
     def run(self, agent):
@@ -486,28 +517,56 @@ class kickoff_wide(): # Corner | Need to figure out which side, left or right
 
 class kickoff_short(): # Back Sides | Need to figure out which side, left or right
     def run(self, agent):
-        agent.set_intent(goto_kickoff(Vector3(0, 2816*side(agent.team), 0)))
+        ball_local = agent.ball_local
+        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0)
+        if ball_local[1] < 0: # R
+            agent.set_intent(goto_kickoff(Vector3(45*side(agent.team), 2816*side(agent.team), 0)))
+            return
+        else: # L
+            agent.set_intent(goto_kickoff(Vector3(-45*side(agent.team), 2816*side(agent.team), 0)))
+            return   
 
 # Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
 # Flips into boost / before boost
 
+# MAKE SURE IT IS DOING RIGHT FLIP THEN FIGURE OUT HOW TO CANCEL AND BOOST THROUGH
+
 class kickoff_short2():
     def run(self, agent):
         ball_local = agent.ball_local
-        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0) # Choose where I want to flip to then add target to flip at -Local target I think?-
+        target = agent.ball.location + Vector3(0, 200*side(agent.team), 0)
         if ball_local[1] < 0:
             print('Speedflip Right') # Log
-            agent.set_intent(kickoff()) # add speed flip shit here
+            print(agent.me.local)
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), False))
+            # agent.set_intent(kickoff()) # add speed flip shit here go left flip right
             return
         else:
             print('Speedflip Left') # Log
-            agent.set_intent(kickoff()) # add speed flip shit here
+            print(agent.me.local)
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1024*side(agent.team), 0, 0) - agent.me.location), False))
+            # agent.set_intent(kickoff()) # add speed flip shit here go right flip left
             return       
 
 class kickoff_center(): # Back Center
     def run(self, agent):
         agent.set_intent(kickoff())
 
+class kickoff_recover(): # Revovery
+    def __init__(self, target=None):
+        self.target = target
+
+    def run(self, agent):
+        if self.target != None:
+            local_target = agent.me.local(
+                (self.target-agent.me.location).flatten())
+        else:
+            local_target = agent.me.local(agent.me.velocity.flatten())
+
+        defaultPD(agent, local_target)
+        agent.controller.throttle = 1
+        if not agent.me.airborne:
+            agent.clear_intent() # Change later to last stage and clear | Check where goes after recover
 
 class recovery():
     # Point towards our velocity vector and land upright, unless we aren't moving very fast
