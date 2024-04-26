@@ -539,20 +539,20 @@ class kickoff_short2():
         if ball_local[1] < 0:
             print('Speedflip Right') # Log
             print(agent.me.local)
-            agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
             # agent.set_intent(kickoff()) # add speed flip shit here go left flip right
             # Bit different than left kickoff for some reason?
             return
         else:
             print('Speedflip Left') # Log
             print(agent.me.local)
-            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1024*side(agent.team), 0, 0) - agent.me.location), True))
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1700*side(agent.team), 0, 0) - agent.me.location), True)) # was 1024
             # agent.set_intent(kickoff()) # add speed flip shit here go right flip left
             return       
 
 class kickoff_center(): # Back Center
-    def run(self, agent):
-        agent.set_intent(goto_kickoff(Vector3(-1024*side(agent.team), 2816*side(agent.team), 0)))
+    def run(self, agent): # If can add boost through flip later keep otherwise add extra flip to end
+        agent.set_intent(goto_kickoff(Vector3(110*side(agent.team), 3200*side(agent.team), 0)))
         # agent.set_intent(kickoff()) # change direction to 20 degrees then flip
         # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
 
@@ -562,16 +562,25 @@ class kickoff_recover(): # Recovery
 
     def run(self, agent):
         if self.target != None:
-            local_target = agent.me.local(
-                (self.target-agent.me.location).flatten())
+            local_target = agent.me.local((self.target-agent.me.location).flatten())
         else:
             local_target = agent.me.local(agent.me.velocity.flatten())
 
+        defaultThrottle(agent, 2300)
         defaultPD(agent, local_target)
         agent.controller.throttle = 1
         if not agent.me.airborne:
             defaultThrottle(agent, 2300)
-            agent.clear_intent() # Change later to last stage and clear | Check where goes after recover
+            agent.set_intent(kickoff_end())
+            # agent.clear_intent() # Change later to last stage and clear | Check where goes after recover
+
+class kickoff_end():
+    def run(self, agent):
+        #add something to determine if center kick of side, if side just throttle self flip at ball
+        defaultThrottle(agent, 2300)
+        if not agent.kickoff_flag:
+            agent.clear_intent
+            return
 
 class recovery():
     # Point towards our velocity vector and land upright, unless we aren't moving very fast
