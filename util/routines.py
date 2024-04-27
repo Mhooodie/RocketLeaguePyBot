@@ -576,10 +576,15 @@ class kickoff_recover(): # Recovery
 
 class kickoff_end():
     def run(self, agent):
+        ball_localup = agent.me.local(agent.ball.location - agent.me.location)
         #add something to determine if center kick of side, if side just throttle self flip at ball
         defaultThrottle(agent, 2300)
+        if agent.ball_local[1] < 1:
+            agent.set_intent(flip(ball_localup))
+            return
         if not agent.kickoff_flag:
-            agent.clear_intent
+            # defaultThrottle(agent, 2300)
+            agent.clear_intent()
             return
 
 class recovery():

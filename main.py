@@ -79,6 +79,7 @@ class GeneralIroh(GoslingAgent):
     # Kickoff Logic
         if self.kickoff_flag:
             kickoff_type = self.getKickoffPosition(self.me.location) # Gets Kickoff Location
+            print(self.ball_local)
             KickoffInitiation(kickoff_type) # Starts Kick off Routine
             self.clear_debug_lines() # Clear Debug Lines on Kickoff
             self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
