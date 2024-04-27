@@ -515,16 +515,26 @@ class kickoff():
 class kickoff_wide(): # Corner | Need to figure out which side, left or right
     def run(self, agent):
         ball_local = agent.ball_local
-        if ball_local[1] > 0:
-            agent.set_intent(kickoff())
+        if ball_local[1] > 0: # R
+            print('Speedflip: Right')
+            agent.set_intent(goto_kickoff_wide(Vector3(800*side(agent.team), 1280*side(agent.team), 0)))
             # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
+            return
+        else: # L
+            print('Speedflip: Left')
+            agent.set_intent(goto_kickoff_wide(Vector3(-800*side(agent.team), 1280*side(agent.team), 0)))
+            # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
+            return
+        
+class kickoff_wide2(): # Update later to be more centered
+    def run(self, agent):
+        ball_local = agent.ball_local
+        if ball_local[1] > 0:
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(950*side(agent.team), 0, 0) - agent.me.location), True))
             return
         else:
-            agent.set_intent(kickoff())
-            # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-950*side(agent.team), 0, 0) - agent.me.location), True))
             return
-
-
 
 class kickoff_short(): # Back Sides | Need to figure out which side, left or right
     def run(self, agent):
@@ -601,6 +611,43 @@ class kickoff_end():
             # defaultThrottle(agent, 2300)
             agent.clear_intent()
             return
+
+
+class goto_kickoff_wide():
+    def __init__(self, target, vector=None, direction=1):
+        self.target = target
+        self.vector = vector
+        self.direction = direction
+
+    def run(self, agent):
+        defaultThrottle(agent, 2300, self.direction)
+        car_to_target = self.target - agent.me.location
+        distance_remaining = car_to_target.flatten().magnitude()
+
+        agent.line(self.target - Vector3(0, 0, 500),
+                   self.target + Vector3(0, 0, 500), [255, 0, 255])
+
+        if self.vector != None:
+            side_of_vector = sign(self.vector.cross(
+                (0, 0, 1)).dot(car_to_target))
+            car_to_target_perp = car_to_target.cross(
+                (0, 0, side_of_vector)).normalize()
+            adjustment = car_to_target.angle(
+                self.vector) * distance_remaining / 3.14
+            final_target = self.target + (car_to_target_perp * adjustment)
+        else:
+            final_target = self.target
+
+        if abs(agent.me.location[1]) > 5150:
+            final_target[0] = cap(final_target[0], -750, 750)
+
+        local_target = agent.me.local(final_target - agent.me.location)
+
+        angles = defaultPD(agent, local_target, self.direction)
+
+        if distance_remaining < 650: # was 350
+            # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
+            agent.set_intent(kickoff_wide2())
 
 class recovery():
     # Point towards our velocity vector and land upright, unless we aren't moving very fast
