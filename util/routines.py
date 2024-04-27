@@ -514,7 +514,17 @@ class kickoff():
             
 class kickoff_wide(): # Corner | Need to figure out which side, left or right
     def run(self, agent):
-        agent.set_intent(kickoff())
+        ball_local = agent.ball_local
+        if ball_local[1] > 0:
+            agent.set_intent(kickoff())
+            # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
+            return
+        else:
+            agent.set_intent(kickoff())
+            # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
+            return
+
+
 
 class kickoff_short(): # Back Sides | Need to figure out which side, left or right
     def run(self, agent):
@@ -561,6 +571,7 @@ class kickoff_recover(): # Recovery
         self.target = target
 
     def run(self, agent):
+        ball_localup = agent.me.local(agent.ball.location - agent.me.location)
         if self.target != None:
             local_target = agent.me.local((self.target-agent.me.location).flatten())
         else:
@@ -570,18 +581,22 @@ class kickoff_recover(): # Recovery
         defaultPD(agent, local_target)
         agent.controller.throttle = 1
         if not agent.me.airborne:
-            defaultThrottle(agent, 2300)
-            agent.set_intent(kickoff_end())
-            # agent.clear_intent() # Change later to last stage and clear | Check where goes after recover
+            if agent.ball_local[1] < 1:
+                defaultThrottle(agent, 2300)
+                agent.set_intent(flip(ball_localup))
+                return
+            else:        
+                # defaultThrottle(agent, 2300)
+                agent.set_intent(flip(ball_localup))
+                # agent.set_intent(kickoff_end())
 
 class kickoff_end():
     def run(self, agent):
-        ball_localup = agent.me.local(agent.ball.location - agent.me.location)
-        #add something to determine if center kick of side, if side just throttle self flip at ball
+        # ball_localup = agent.me.local(agent.ball.location - agent.me.location)
         defaultThrottle(agent, 2300)
-        if agent.ball_local[1] < 1:
-            agent.set_intent(flip(ball_localup))
-            return
+        # if agent.ball_local[1] < 1:
+        #     agent.set_intent(flip(ball_localup))
+        #     return
         if not agent.kickoff_flag:
             # defaultThrottle(agent, 2300)
             agent.clear_intent()
