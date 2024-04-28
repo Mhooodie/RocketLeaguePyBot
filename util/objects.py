@@ -174,13 +174,50 @@ class GoslingAgent(BaseAgent):
     #         return closest_boost
     
 
-    def infront_of_ball(self):
+    def infront_of_ball100(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 100:
+            return True
+        return False
+
+    def infront_of_ball75(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 75:
+            return True
+        return False
+
+    def infront_of_ball50(self):
         me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
         ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
         if me_to_goal < ball_to_goal + 50:
             return True
         return False
     
+    def infront_of_ball25(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 25:
+            return True
+        return False
+    
+    def infront_of_ball(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal:
+            return True
+        return False
+
+    # def in_net(self):
+    #     if self.team == 0: # Blue
+    #         if abs(self.me.location - [0, 0, 0]).magnitude() > 5120:
+    #             pass 
+    #             return
+    #     else: # Orange
+    #         pass
+    #         return
+
     def print_debug(self):
         white = self.renderer.white()
         self.renderer.draw_string_2d(10, 150, 3, 3, self.debugtext, white)

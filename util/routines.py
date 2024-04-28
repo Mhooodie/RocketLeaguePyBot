@@ -423,7 +423,6 @@ class goto_demo():
         angles = defaultPD(agent, local_target, self.direction)
 
         if distance_remaining < 3000:
-            # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
             defaultThrottle(agent, 2300, self.direction)
             if agent.foes[0].demolished:
                 agent.clear_intent()
