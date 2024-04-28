@@ -468,6 +468,42 @@ class goto_kickoff():
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
             agent.set_intent(kickoff_short2())
 
+class goto_kickoff_mid():
+    def __init__(self, target, vector=None, direction=1):
+        self.target = target
+        self.vector = vector
+        self.direction = direction
+
+    def run(self, agent):
+        defaultThrottle(agent, 2300, self.direction)
+        car_to_target = self.target - agent.me.location
+        distance_remaining = car_to_target.flatten().magnitude()
+
+        agent.line(self.target - Vector3(0, 0, 500),
+                   self.target + Vector3(0, 0, 500), [255, 0, 255])
+
+        if self.vector != None:
+            side_of_vector = sign(self.vector.cross(
+                (0, 0, 1)).dot(car_to_target))
+            car_to_target_perp = car_to_target.cross(
+                (0, 0, side_of_vector)).normalize()
+            adjustment = car_to_target.angle(
+                self.vector) * distance_remaining / 3.14
+            final_target = self.target + (car_to_target_perp * adjustment)
+        else:
+            final_target = self.target
+
+        if abs(agent.me.location[1]) > 5150:
+            final_target[0] = cap(final_target[0], -750, 750)
+
+        local_target = agent.me.local(final_target - agent.me.location)
+
+        angles = defaultPD(agent, local_target, self.direction)
+
+        if distance_remaining < 650: # was 350
+            # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
+            agent.set_intent(kickoff_mid2())
+
 class kickoff_flip(): # Flip
     # Flip takes a vector in local coordinates and flips/dodges in that direction
     # cancel causes the flip to cancel halfway through, which can be used to half-flip
@@ -552,6 +588,13 @@ class kickoff_short(): # Back Sides | Need to figure out which side, left or rig
 
 # MAKE SURE IT IS DOING RIGHT FLIP THEN FIGURE OUT HOW TO CANCEL AND BOOST THROUGH
 
+class kickoff_mid2():
+    def run(self, agent):
+            print('Speedflip Left') # Log
+            print(agent.me.local)
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1700*side(agent.team), 0, 0) - agent.me.location), True))
+            return      
+
 class kickoff_short2():
     def run(self, agent):
         ball_local = agent.ball_local
@@ -572,7 +615,7 @@ class kickoff_short2():
 
 class kickoff_center(): # Back Center
     def run(self, agent): # If can add boost through flip later keep otherwise add extra flip to end
-        agent.set_intent(goto_kickoff(Vector3(110*side(agent.team), 3200*side(agent.team), 0)))
+        agent.set_intent(goto_kickoff_mid(Vector3(110*side(agent.team), 3200*side(agent.team), 0)))
         # agent.set_intent(kickoff()) # change direction to 20 degrees then flip
         # agent.set_intent(kickoff_flip(agent.me.local(Vector3(1024*side(agent.team), 0, 0) - agent.me.location), True))
 
@@ -645,7 +688,7 @@ class goto_kickoff_wide():
 
         angles = defaultPD(agent, local_target, self.direction)
 
-        if distance_remaining < 650: # was 350
+        if distance_remaining < 350: # was 350
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
             agent.set_intent(kickoff_wide2())
 
