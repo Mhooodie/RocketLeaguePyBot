@@ -135,8 +135,7 @@ class GoslingAgent(BaseAgent):
     def get_closest_large_boost(self):
         available_boosts = [boost for boost in self.boosts if boost.large
             and boost.active
-            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude() and (self.foes[0].location - self.ball.location).magnitude()
-            > (self.me.location - self.ball.location).magnitude()
+            and (boost.location - self.friend_goal.location).magnitude() < (self.ball.location - self.friend_goal.location).magnitude() #and (self.foes[0].location - self.ball.location).magnitude() > (self.me.location - self.ball.location).magnitude()
         ]
         closest_boost_large = None
         closest_distance = 10000

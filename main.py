@@ -125,7 +125,7 @@ class GeneralIroh(GoslingAgent):
             self.debug_intent() # On Screen Debug | Shows Intent
             if self.intent == short_shot or aerial_shot or jump_shot: # Checks if stuck in goal
                 if side(self.team) == -1: # Blue
-                    if self.me.location[1] < -5120:
+                    if self.me.location[1] < -5165:
                         if ball_to_me > 2000:
                             print('Stuck In Goal, Moving Out!')
                             self.debugtext = ('Stuck In Goal, Moving Out!')
@@ -134,7 +134,7 @@ class GeneralIroh(GoslingAgent):
                             self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
                             return
                 elif side(self.team) == 0:
-                    if self.me.location[1] > 5120:
+                    if self.me.location[1] > 5165:
                         if ball_to_me > 2000:
                             self.print_debug()
                             self.debug_intent()
@@ -144,7 +144,7 @@ class GeneralIroh(GoslingAgent):
                             return
             if self.intent == goto and self.infront_of_ball() == True:
                 if side(self.team) == -1: # Blue
-                    if self.me.location[1] < -5120:
+                    if self.me.location[1] < -5165:
                         if ball_to_me > 2000:
                             self.print_debug()
                             self.debug_intent()
@@ -153,7 +153,7 @@ class GeneralIroh(GoslingAgent):
                             self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
                             return
                 elif side(self.team) == 0:
-                    if self.me.location[1] > 5120:
+                    if self.me.location[1] > 5165:
                         if ball_to_me > 2000:
                             self.print_debug()
                             self.debug_intent()
@@ -197,7 +197,7 @@ class GeneralIroh(GoslingAgent):
                 print('Target Down | Repositioning') # Log  
                 return
             
-    # Offensive Pre Checks
+    # Offensive Pre-Checks
         if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal:
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
@@ -216,7 +216,8 @@ class GeneralIroh(GoslingAgent):
                 print('Shooting | Opponent Behind Me') # Log
                 return
             
-        if ball_to_me < ball_to_opponent and self.me.boost >= self.foes[0].boost and self.infront_of_ball25(): # If I am Closer to the ball, infront of it, and have more boost then I shoot
+        if ball_to_me < ball_to_opponent and self.infront_of_ball25(): # If I am Closer to the ball, infront of it, and have more boost then I shoot
+            print('Closer & Infront of Ball')
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
                 self.set_intent(hits['opponent_goal'][0])
@@ -237,10 +238,10 @@ class GeneralIroh(GoslingAgent):
                     return
                     
     # General Movement Checks
-        target_boost = self.get_closest_large_boost() # Boost to Friend_Goal < Ball to Friend Goal AND Foe to Ball > Me to Ball AND My Boost < 20
-        if target_boost is not None:
-            me_to_targboost = abs(self.me.location - target_boost.location).magnitude()
-        if target_boost is not None and self.me.boost < 20:
+        # target_boost = self.get_closest_large_boost() # Boost to Friend_Goal < Ball to Friend Goal AND Foe to Ball > Me to Ball AND My Boost < 20
+        # if target_boost is not None:
+        #     me_to_targboost = abs(self.me.location - target_boost.location).magnitude()
+        if target_boost is not None and self.me.boost < 20 and ball_to_me > ball_to_opponent and ballside() == False: # DELETE BALL ME BALL OPP LATER IF NOT GETTING BOOST ***
             self.set_intent(goto(target_boost.location)) # add check for opponent shooting into goto ***
             self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
             print (f'Getting Large Boost At {target_boost.location}') # Log
@@ -283,7 +284,7 @@ class GeneralIroh(GoslingAgent):
                         self.set_intent(short_shot(self.foe_goal.location))
                         return
 
-        if ball_to_teamgoal <= 2000:
+        if ball_to_teamgoal <= 2000 and ballside() == True:
             self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
             self.debugtext = 'Defensive Position!' # Debug
             print('Defense Position!') # Log
@@ -307,8 +308,8 @@ class GeneralIroh(GoslingAgent):
         ball_to_me = abs(self.ball.location - self.foes[0].location).magnitude()
         if ballside() == True and ball_to_opponent < ball_to_me:
             self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defensive Position!' # Debug
-            print('Defense Position!') # Log
+            self.debugtext = 'Defending, Opp Closer to Ball' # Debug
+            print('Defending, Opp Closer to Ball') # Log
             if ball_to_opponent >= ball_to_me:
                 hits = find_hits(self, targets)
                 if len(hits['opponent_goal']) > 0:
@@ -324,6 +325,13 @@ class GeneralIroh(GoslingAgent):
                     self.set_intent(short_shot(self.foe_goal.location))
                     return
             return
+
+    #Pre-Offence Checks
+        if target_boost is not None and self.me.boost < 20 and ball_to_me < ball_to_opponent: # DELETE BALL ME BALL OPP LATER IF NOT GETTING BOOST ***
+            self.set_intent(goto(target_boost.location)) # add check for opponent shooting into goto ***
+            self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
+            print (f'Getting Large Boost At {target_boost.location}') # Log
+            return # Dont want to always get large boost especially if far so fix this later ***
 
     # Offense Checks
         if self.infront_of_ball25(): # If infront of ball move back
@@ -417,19 +425,29 @@ class GeneralIroh(GoslingAgent):
                 print('Defending') # Log
                 return  
         elif ballside() == False and ball_to_opponent < ball_to_me:
-            target_boost = self.get_closest_large_boost()
-            if target_boost is not None:
-                me_to_targboost = abs(self.me.location - target_boost.location).magnitude()
-            if target_boost is not None and self.me.boost < 20:
-                self.set_intent(goto(target_boost.location)) 
-                self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
-                print (f'Getting Large Boost At {target_boost.location}') # Log
-                return 
-        print('No Other Parameters Met')
-        if self.intent == None:
             self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
             self.debugtext = 'Defensive Position!' # Debug
             print('Defense Position!') # Log
+            if ball_to_opponent >= ball_to_me:
+                hits = find_hits(self, targets)
+                if len(hits['opponent_goal']) > 0:
+                    self.set_intent(hits['opponent_goal'][0])
+                    return
+                elif len(hits['center']) > 0:
+                    self.set_intent(hits['center'][0])
+                    return
+                elif len(hits['team_goal']) > 0:
+                    self.set_intent(hits['team_goal'][0])
+                    return
+                else:
+                    self.set_intent(short_shot(self.foe_goal.location))
+                    return
+            return
+        print('No Other Parameters Met')
+        if self.intent == None:
+            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
+            self.debugtext = 'Defensive Position! | No Other Parameters Met' # Debug
+            print('Defensive Position! | No Other Parameters Met') # Log
             if ball_to_opponent >= ball_to_me:
                 hits = find_hits(self, targets)
                 if len(hits['opponent_goal']) > 0:
