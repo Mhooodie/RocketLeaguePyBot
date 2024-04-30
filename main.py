@@ -28,7 +28,8 @@ class GeneralIroh(GoslingAgent):
         me_to_opponentgoal = abs(self.me.location - self.foe_goal.location).magnitude()
         opponent_to_teamgoal = abs(self.foes[0].location - self.friend_goal.location).magnitude()
         opponent_to_oppgoal = abs(self.foes[0].location - self.foe_goal.location).magnitude()
-
+        if target_boost is not None:
+            me_to_target_boost = abs(self.me.location - target_boost.location).magnitude()
 
 # Setup Functions'
         def KickoffInitiation(kickoff_type):
@@ -67,11 +68,28 @@ class GeneralIroh(GoslingAgent):
                 return
             
         def demo():
-            if self.me.boost > 80 and ball_to_teamgoal < opponent_to_teamgoal < me_to_teamgoal:
+            if self.me.boost > 80 and ball_to_teamgoal < opponent_to_teamgoal < me_to_teamgoal and ballside() == True:
                 self.debugtext = 'BLOW EM TO SMITHERINES!' # Debug
                 print('BLOW EM TO SMITHERINES!') # Log
-                self.set_intent(goto(self.foes[0].location)) # defaultThrottle(agent, 2300) Fix gotodemo
+                self.set_intent(goto_demo(self.foes[0].location)) # defaultThrottle(agent, 2300) Fix gotodemo
                 return
+            if self.foes[0].demolished:
+                hits = find_hits(self, targets)
+                if self.infront_of_ball25(): # Infront of ball means closer to opponent net
+                    self.set_intent(goto(self.friend_goal.location))
+                    self.debugtext = 'Target Down | Repositioning' # Debug
+                    print('Target Down | Repositioning') # Log  
+                    return
+                elif len(hits['opponent_goal']) > 0:
+                    self.set_intent(hits['opponent_goal'][0])
+                    self.debugtext = 'Target Neutralized | Shooting' # Debug
+                    print('Target Neutralized | Shooting') # Log
+                    return
+                else:
+                    self.set_intent(goto(self.friend_goal.location))
+                    self.debugtext = 'Target Down | Repositioning' # Debug
+                    print('Target Down | Repositioning') # Log  
+                    return
             
         def ballside():
             if self.team == 1: # Orange
@@ -88,6 +106,26 @@ class GeneralIroh(GoslingAgent):
                     return True
                 else:
                     return False
+                
+        def foeside():
+            if self.team == 1: # Orange
+                if self.foes[0].location[1] > 0:
+                    self.debugtext = 'Foe On Team Side' # Debug
+                    print('Foe On Team Side') # Log
+                    return True
+                else:
+                    return False
+            else: # Blue
+                if self.foes[0].location[1] < 0:
+                    self.debugtext = 'Foe On Team Side' # Debug
+                    print('Foe On Team Side') # Log
+                    return True
+                else:
+                    return False
+
+        def ballnotgoingin():
+            pass
+            # Use ball prediction to return true if ball going in in next 6 seconds
 
         def ballsidecolumn():
             if self.team == 1: # Orange
@@ -179,23 +217,6 @@ class GeneralIroh(GoslingAgent):
 
     # Opponent Demolished
         demo()
-        if self.foes[0].demolished:
-            hits = find_hits(self, targets)
-            if self.infront_of_ball25(): # Infront of ball means closer to opponent net
-                self.set_intent(goto(self.friend_goal.location))
-                self.debugtext = 'Target Down | Repositioning' # Debug
-                print('Target Down | Repositioning') # Log  
-                return
-            elif len(hits['opponent_goal']) > 0:
-                self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Target Neutralized | Shooting' # Debug
-                print('Target Neutralized | Shooting') # Log
-                return
-            else:
-                self.set_intent(goto(self.friend_goal.location))
-                self.debugtext = 'Target Down | Repositioning' # Debug
-                print('Target Down | Repositioning') # Log  
-                return
             
     # Offensive Pre-Checks
         if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal:
@@ -332,6 +353,12 @@ class GeneralIroh(GoslingAgent):
             self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
             print (f'Getting Large Boost At {target_boost.location}') # Log
             return # Dont want to always get large boost especially if far so fix this later ***
+        if target_boost is not None and me_to_target_boost < 400:
+            self.set_intent(goto(target_boost.location))
+            self.debugtext = f'Getting Large Boost Because Close! At {target_boost.location}' # Debug
+            print (f'Getting Large Boost Because Close! At {target_boost.location}') # Log
+            return          
+        # angles = defaultPD(agent, local_target, self.direction)
 
     # Offense Checks
         if self.infront_of_ball25(): # If infront of ball move back

@@ -443,6 +443,9 @@ class jump_shot():
                 agent.controller.yaw = self.y if abs(self.y) > 0.3 else 0
 
 class goto_demo():
+    # Drives towards a designated (stationary) target
+    # Optional vector controls where the car should be pointing upon reaching the target
+    # TODO - slow down if target is inside our turn radius
     def __init__(self, target, vector=None, direction=1):
         self.target = target
         self.vector = vector
@@ -456,6 +459,7 @@ class goto_demo():
                    self.target + Vector3(0, 0, 500), [255, 0, 255])
 
         if self.vector != None:
+            # See commends for adjustment in jump_shot or aerial for explanation
             side_of_vector = sign(self.vector.cross(
                 (0, 0, 1)).dot(car_to_target))
             car_to_target_perp = car_to_target.cross(
@@ -466,21 +470,33 @@ class goto_demo():
         else:
             final_target = self.target
 
+        # Some adjustment to the final target to ensure it's inside the field and we don't try to dirve through any goalposts to reach it
         if abs(agent.me.location[1]) > 5150:
             final_target[0] = cap(final_target[0], -750, 750)
 
         local_target = agent.me.local(final_target - agent.me.location)
 
         angles = defaultPD(agent, local_target, self.direction)
+        defaultThrottle(agent, 2300, self.direction)
 
-        if distance_remaining < 3000:
+        agent.controller.boost = False
+        agent.controller.handbrake = True if abs(
+            angles[1]) > 2.3 else agent.controller.handbrake
+
+        velocity = 1+agent.me.velocity.magnitude()
+        if distance_remaining < 2500:
             defaultThrottle(agent, 2300, self.direction)
-            if agent.foes[0].demolished:
-                agent.clear_intent()
-            elif agent.me.boost < 10:
-                agent.clear_intent()
-            else:
-                agent.set_intent(goto_demo(agent.foes[0].location))
+            agent.set_intent(goto_demo(agent.foes[0].location))
+        elif agent.foes[0].demolished:
+            agent.clear_intent()
+        elif agent.me.boost < 10:
+            agent.clear_intent()
+        elif distance_remaining < 100:
+            agent.clear_intent()    
+        elif agent.me.airborne:
+            agent.set_intent(recovery(self.target))
+        elif agent.foes[0].demolished == False:
+            agent.set_intent(goto_demo(agent.foes[0].location))
 
 class goto_kickoff():
     def __init__(self, target, vector=None, direction=1):
