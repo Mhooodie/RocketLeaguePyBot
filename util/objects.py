@@ -201,6 +201,20 @@ class GoslingAgent(BaseAgent):
             return True
         return False
     
+    def infront_of_ball10(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 10:
+            return True
+        return False
+    
+    def infront_of_ball5(self):
+        me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
+        ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)
+        if me_to_goal < ball_to_goal + 5:
+            return True
+        return False    
+    
     def infront_of_ball(self):
         me_to_goal = abs(self.me.location.y - self.foe_goal.location.y)
         ball_to_goal = abs(self.ball.location.y - self.foe_goal.location.y)

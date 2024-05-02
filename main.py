@@ -74,11 +74,10 @@ class GeneralIroh(GoslingAgent):
                 self.set_intent(goto_demo(self.foes[0].location)) # defaultThrottle(agent, 2300) Fix gotodemo
                 return
             if self.foes[0].demolished:
-                hits = find_hits(self, targets)
                 if self.infront_of_ball25(): # Infront of ball means closer to opponent net
                     self.set_intent(goto(self.friend_goal.location))
-                    self.debugtext = 'Target Down | Repositioning' # Debug
-                    print('Target Down | Repositioning') # Log  
+                    self.debugtext = 'Target Down | Repositioning 25' # Debug
+                    print('Target Down | Repositioning 25') # Log  
                     return
                 elif len(hits['opponent_goal']) > 0:
                     self.set_intent(hits['opponent_goal'][0])
@@ -94,15 +93,11 @@ class GeneralIroh(GoslingAgent):
         def ballside():
             if self.team == 1: # Orange
                 if self.ball.location[1] > 0:
-                    self.debugtext = 'Ball On Team Side' # Debug
-                    print('Ball On Team Side') # Log
                     return True
                 else:
                     return False
             else: # Blue
                 if self.ball.location[1] < 0:
-                    self.debugtext = 'Ball On Team Side' # Debug
-                    print('Ball On Team Side') # Log
                     return True
                 else:
                     return False
@@ -157,336 +152,172 @@ class GeneralIroh(GoslingAgent):
 
         def iswithinrange(me, ball):
             return me in range(ball - 150, ball + 150)
-# Start
-        self.print_debug() # On Screen Debug | Shows debugtext
-        if self.intent is not None: # Checks to see if there is intent, if there is it keeps it until cleared.
-            self.debug_intent() # On Screen Debug | Shows Intent
-            if self.intent == short_shot or aerial_shot or jump_shot: # Checks if stuck in goal
-                if side(self.team) == -1: # Blue
-                    if self.me.location[1] < -5165:
-                        if ball_to_me > 2000:
-                            print('Stuck In Goal, Moving Out!')
-                            self.debugtext = ('Stuck In Goal, Moving Out!')
-                            self.print_debug()
-                            self.debug_intent()
-                            self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
+        
+        def checkshots():
+            if len(hits['opponent_goal']) > 0:
+                self.set_intent(hits['opponent_goal'][0])
+                self.debugtext = 'Shooting'
+                print('Shooting')
+                return
+            if len(hits['center']) > 0 and ballside() == True and self.infront_of_ball:
+                self.set_intent(hits['center'][0])
+                self.debugtext = 'Centering Ball'
+                print('Centering Ball')
+                return
+            if len(hits['team_goal']) > 0 and ballside() == True:
+                self.set_intent(hits['team_goal'][0])
+                self.debugtext = 'Defending'
+                print('Defending')
+                return
+
+        def checknet():
+            if side(self.team) == -1: # If Blue Team
+                if self.ball.location[1] < -5140:
+                    self.debugtext = 'Ball In Net' # Debug
+                    print('Ball In Net') # Log
+                    self.set_intent(goto(self.friend_goal.location + Vector3(0, -200, 0)))
+                    if self.me.location[1] > 5141:
+                        if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
+                            self.set_intent(hits['opponent_goal'][0])
+                            self.debugtext = ('Shooting Out of Goal') # Debug
+                            print('Shooting Out of Goal') # Log
                             return
-                elif side(self.team) == 0:
-                    if self.me.location[1] > 5165:
-                        if ball_to_me > 2000:
-                            self.print_debug()
-                            self.debug_intent()
-                            print('Stuck In Goal, Moving Out!')
-                            self.debugtext = ('Stuck In Goal, Moving Out!')
-                            self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
+                        else:
+                            self.debugtext = 'Shooting Out of Goal' # Debug
+                            print('Shooting Out of Goal') # Log
+                            self.set_intent(short_shot(self.foe_goal.location))
                             return
-            if self.intent == goto and self.infront_of_ball() == True:
-                if side(self.team) == -1: # Blue
-                    if self.me.location[1] < -5165:
-                        if ball_to_me > 2000:
-                            self.print_debug()
-                            self.debug_intent()
-                            print('Stuck In Goal, Moving Out!')
-                            self.debugtext = ('Stuck In Goal, Moving Out!')                            
-                            self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
+            elif side(self.team) == 0: # If Orange Team
+                if self.ball.location[1] > 5140:
+                    self.debugtext = 'Ball In Net' # Debug
+                    print('Ball In Net') # Log
+                    self.set_intent(goto(self.friend_goal.location + Vector3(0, 200, 0)))
+                    if self.me.location[1] > 5141:
+                        if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
+                            self.set_intent(hits['opponent_goal'][0])
+                            self.debugtext = ('Shooting Out of Goal') # Debug
+                            print('Shooting Out of Goal') # Log
                             return
-                elif side(self.team) == 0:
-                    if self.me.location[1] > 5165:
-                        if ball_to_me > 2000:
-                            self.print_debug()
-                            self.debug_intent()
-                            print('Stuck In Goal, Moving Out!')
-                            self.debugtext = ('Stuck In Goal, Moving Out!')                            
-                            self.set_intent(goto(self.friend_goal.location + Vector3(0, -1000*side(self.team), 0)))
+                        else:
+                            self.debugtext = 'Shooting Out of Goal' # Debug
+                            print('Shooting Out of Goal') # Log
+                            self.set_intent(short_shot(self.foe_goal.location))
                             return
+
+        def defensivepos():
+            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
+            self.debugtext = 'Defensive Position!' # Debug
+            print('Defense Position!') # Log
+            if ball_to_me < ball_to_opponent:
+                if len(hits['opponent_goal']) > 0:
+                    self.set_intent(hits['opponent_goal'][0])
+                    return
+                elif len(hits['center']) > 0:
+                    self.set_intent(hits['center'][0])
+                    return
+                elif len(hits['team_goal']) > 0:
+                    self.set_intent(hits['team_goal'][0])
+                    return
+                elif ball_to_me < ball_to_opponent and ballside() == True:
+                    self.set_intent(short_shot(self.foe_goal.location))
+                    return
             return
 
-# Kickoff Logic
+# Camera, ACTION!
+        ballside() # Determines Ball Side: Team Side Returns True Opp Side Returns False
+        self.print_debug() # On Screen Debug | Shows Debugtext
+        if self.intent is not None: # If Intent Repears Until Cleared
+            self.debug_intent() # On Screen Debug | Shows Intent
+            return
+
+# Kickoff Action
         if self.kickoff_flag:
             kickoff_type = self.getKickoffPosition(self.me.location) # Gets Kickoff Location
-            print(self.ball_local)
-            KickoffInitiation(kickoff_type) # Starts Kick off Routine
+            KickoffInitiation(kickoff_type) # Starts Kickoff Routine
             self.clear_debug_lines()
             self.add_debug_line('me_to_kickoff', self.me.location, self.ball.location, [0, 0, 255])
             self.add_debug_line('kickoff_to_goal', self.ball.location, self.foe_goal.location, [0, 0, 255])
             print(f'Kicking Off | Type: {kickoff_type}') # Log
-            #self.send_quick_chat(False, QuickChats.Compliments_IGotIt) # Test Quickchat, test later with custom chats FIX LATER
             return
-        
-# Game Logic
 
-    # Opponent Demolished
-        demo()
+# Pre-Logic Functions
+        checknet() # Checks if Ball In Net, Hits out
+        # If me | opp | ball | teamnet ZOOM at net and block
+        demo() # Check if Opponent Demoed
+
+# Defensive Actions
+        if ball_to_teamgoal <= 2000 and ballside() == True:
+            defensivepos()
             
-    # Offensive Pre-Checks
-        if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal:
+        if ball_to_opponent < ball_to_me and ballside() == True:
+            defensivepos()  
+
+# Offensive Pre-Checks
+        if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal: # Opponent Behind me Ball Infront
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
                 self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Shooting | Opponent Behind Me' # Debug
-                print('Shooting | Opponent Behind Me') # Log
+                self.debugtext = 'Shooting | Opponent Behind Me'
+                print('Shooting | Opponent Behind Me')
                 return
-            elif self.infront_of_ball and opponent_to_oppgoal > 2000:
-                self.set_intent(short_shot(self.foe_goal.location + Vector3(0, 500*side(self.team), 0)))
-                self.debugtext = 'Short Shot | Center Opp Goal' # Debug
+            elif self.infront_of_ball and opponent_to_oppgoal > 4000:
+                self.set_intent(short_shot(self.foe_goal.location + Vector3(0, -600*side(self.team), 0)))
+                self.debugtext = 'Short Shot | Center Opp Goal'
                 hits = find_hits(self, targets)
                 return
-            elif len(hits['opponent_goal']) > 0:
-                self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Shooting | Opponent Behind Me' # Debug
-                print('Shooting | Opponent Behind Me') # Log
-                return
             
-        if ball_to_me < ball_to_opponent and self.infront_of_ball25(): # If I am Closer to the ball, infront of it, and have more boost then I shoot
-            print('Closer & Infront of Ball')
+        if ball_to_me < ball_to_opponent and self.infront_of_ball5(): # If I am Closer to the ball and infront of it then shoot
+            print('Closer & Infront of Ball 5')
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
                 self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball' # Debug
-                print('Shooting | Closer, More Boost, Infront of Ball') # Log
+                self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
+                print('Shooting | Closer, More Boost, Infront of Ball 5')
                 return
-            else:
-                self.set_intent(short_shot(self.foe_goal.location + Vector3(0, 500*side(self.team), 0)))
-                self.debugtext = 'Short Shot | Closer, More Boost, Infront of Ball' # Debug
-                print('Short Shot | Closer, More Boost, Infront of Ball') # Log
+            elif ball_to_me < ball_to_opponent and self.infront_of_ball5():
+                self.set_intent(short_shot(self.foe_goal.location + Vector3(0, -600*side(self.team), 0)))
+                self.debugtext = 'Short Shot | Closer, More Boost, Infront of Ball 5' 
+                print('Short Shot | Closer, More Boost, Infront of Ball 5')
                 hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball' # Debug
-                    print('Shooting | Closer, More Boost, Infront of Ball') # Log
-                    return                
-                else:
-                    return
-                    
-    # General Movement Checks
-        # target_boost = self.get_closest_large_boost() # Boost to Friend_Goal < Ball to Friend Goal AND Foe to Ball > Me to Ball AND My Boost < 20
-        # if target_boost is not None:
-        #     me_to_targboost = abs(self.me.location - target_boost.location).magnitude()
+                return
+
+# Movement Actions
         if target_boost is not None and self.me.boost < 20 and ball_to_me > ball_to_opponent and ballside() == False: # DELETE BALL ME BALL OPP LATER IF NOT GETTING BOOST ***
             self.set_intent(goto(target_boost.location)) # add check for opponent shooting into goto ***
             self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
             print (f'Getting Large Boost At {target_boost.location}') # Log
             return # Dont want to always get large boost especially if far so fix this later ***
-        
-    # Defense Checks
-        ballside() # True if on team side
-        if side(self.team) == -1:
-            if self.ball.location[1] < 5030*side(self.team):
-                self.debugtext = 'Ball In Net' # Debug
-                print('Ball In Net') # Log
-                self.set_intent(goto(self.friend_goal.location + Vector3(0, 500*side(self.team), 0)))
-                if self.me.location[1] < 5030*side(self.team):
-                    hits = find_hits(self, targets)
-                    if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
-                        self.set_intent(hits['opponent_goal'][0])
-                        self.debugtext = ('Shooting Out of Goal') # Debug
-                        print('Shooting Out of Goal') # Log
-                        return
-                    else:
-                        self.debugtext = 'Shooting Out of Goal' # Debug
-                        print('Shooting Out of Goal') # Log
-                        self.set_intent(short_shot(self.foe_goal.location))
-                        return
-        elif side(self.team) == 0:
-            if self.ball.location[1] > 5165*side(self.team):
-                self.debugtext = 'Ball In Net' # Debug
-                print('Ball In Net') # Log
-                self.set_intent(goto(self.friend_goal.location + Vector3(0, 500*side(self.team), 0)))
-                if self.me.location[1] < 5030*side(self.team):
-                    hits = find_hits(self, targets)
-                    if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
-                        self.set_intent(hits['opponent_goal'][0])
-                        self.debugtext = ('Shooting Out of Goal') # Debug
-                        print('Shooting Out of Goal') # Log
-                        return
-                    else:
-                        self.debugtext = 'Shooting Out of Goal' # Debug
-                        print('Shooting Out of Goal') # Log
-                        self.set_intent(short_shot(self.foe_goal.location))
-                        return
+            # angles = defaultPD(agent, local_target, self.direction)
 
-        if ball_to_teamgoal <= 2000 and ballside() == True:
-            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defensive Position!' # Debug
-            print('Defense Position!') # Log
-            if ball_to_opponent >= ball_to_me:
-                hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    return
-                elif len(hits['center']) > 0:
-                    self.set_intent(hits['center'][0])
-                    return
-                elif len(hits['team_goal']) > 0:
-                    self.set_intent(hits['team_goal'][0])
-                    return
-                else:
-                    self.set_intent(short_shot(self.foe_goal.location))
-                    return
-            return
-        
-        ball_to_opponent = abs(self.ball.location - self.foes[0].location).magnitude()
-        ball_to_me = abs(self.ball.location - self.foes[0].location).magnitude()
-        if ballside() == True and ball_to_opponent < ball_to_me:
-            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defending, Opp Closer to Ball' # Debug
-            print('Defending, Opp Closer to Ball') # Log
-            if ball_to_opponent >= ball_to_me:
-                hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    return
-                elif len(hits['center']) > 0:
-                    self.set_intent(hits['center'][0])
-                    return
-                elif len(hits['team_goal']) > 0:
-                    self.set_intent(hits['team_goal'][0])
-                    return
-                else:
-                    self.set_intent(short_shot(self.foe_goal.location))
-                    return
-            return
+# Infront of Ball Actions
 
-    #Pre-Offence Checks
-        if target_boost is not None and self.me.boost < 20 and ball_to_me < ball_to_opponent: # DELETE BALL ME BALL OPP LATER IF NOT GETTING BOOST ***
-            self.set_intent(goto(target_boost.location)) # add check for opponent shooting into goto ***
-            self.debugtext = f'Getting Large Boost At {target_boost.location}' # Debug
-            print (f'Getting Large Boost At {target_boost.location}') # Log
-            return # Dont want to always get large boost especially if far so fix this later ***
-        if target_boost is not None and me_to_target_boost < 400:
-            self.set_intent(goto(target_boost.location))
-            self.debugtext = f'Getting Large Boost Because Close! At {target_boost.location}' # Debug
-            print (f'Getting Large Boost Because Close! At {target_boost.location}') # Log
-            return          
-        # angles = defaultPD(agent, local_target, self.direction)
-
-    # Offense Checks
+# Offensive Actions
         if self.infront_of_ball25(): # If infront of ball move back
             self.set_intent(goto(self.friend_goal.location + Vector3(0, -500*side(self.team), 0)))
-            self.debugtext = 'Moving Back: Infront of Ball' # Debug
-            print('Moving Back: Infront of Ball') # Log
+            self.debugtext = 'Moving Back: Infront of Ball 25' # Debug
+            print('Moving Back: Infront of Ball 25') # Log
             if self.ball.location[1] == self.me.location[1]: # Fix later -> if iswithinrange(self.me.location[0], self.ball.location[0]):
                 self.set_intent(goto(self.friend_goal.right_post))
-                self.debugtext = 'Moving Back: Infront of Ball & Ball In Way' # Debug
-                print('Moving Back: Infront of Ball & Ball In Way') # Log
+                self.debugtext = 'Moving Back: Infront of Ball 25 & Ball In Way' # Debug
+                print('Moving Back: Infront of Ball 25 & Ball In Way') # Log
                 return
             return
-        hits = find_hits(self, targets)
-        if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
-            self.set_intent(hits['opponent_goal'][0])
-            self.debugtext = 'Shooting' # Debug
-            print('Shooting') # Log
-            return
-        #  and ball_to_teamgoal < ball_to_opponentgoal and me_to_teamgoal < ball_to_teamgoal for bellow code testing switch with ballside()
-        hits = find_hits(self, targets)
-        if len(hits['center']) > 0 and ballside() == True and self.infront_of_ball:
-            self.set_intent(hits['center'][0])
-            self.debugtext = 'Centering Ball' # Debug
-            print('Centering Ball') # Log
-            return
-        hits = find_hits(self, targets)
-        if len(hits['team_goal']) > 0 and ballside() == True: # Shoot at sides of my goal if shot
-            self.set_intent(hits['team_goal'][0])
-            self.debugtext = 'Defending' # Debug
-            print('Defending') # Log
-            return   
         
-    # If Nothing Else
-        ball_to_opponent = abs(self.ball.location - self.foes[0].location).magnitude()
-        ball_to_me = abs(self.ball.location - self.foes[0].location).magnitude()
-        if ballside() == True and ball_to_opponent < ball_to_me:
-            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defensive Position!' # Debug
-            print('Defense Position!') # Log
-            if ball_to_opponent >= ball_to_me:
-                hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    return
-                elif len(hits['center']) > 0:
-                    self.set_intent(hits['center'][0])
-                    return
-                elif len(hits['team_goal']) > 0:
-                    self.set_intent(hits['team_goal'][0])
-                    return
-                else:
-                    self.set_intent(short_shot(self.foe_goal.location))
-                    return
-            return
-        elif ballside() == True and ball_to_opponent > ball_to_me:
-            if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
-                self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Shooting' # Debug
-                print('Shooting') # Log
-                return
-            #  and ball_to_teamgoal < ball_to_opponentgoal and me_to_teamgoal < ball_to_teamgoal for bellow code testing switch with ballside()
-            hits = find_hits(self, targets)
-            if len(hits['center']) > 0 and ballside() == True and self.infront_of_ball:
-                self.set_intent(hits['center'][0])
-                self.debugtext = 'Centering Ball' # Debug
-                print('Centering Ball') # Log
-                return
-            hits = find_hits(self, targets)
-            if len(hits['team_goal']) > 0 and ballside() == True: # Shoot at sides of my goal if shot
-                self.set_intent(hits['team_goal'][0])
-                self.debugtext = 'Defending' # Debug
-                print('Defending') # Log
-                return
-        elif ballside() == False  and ball_to_opponent > ball_to_me:
-            if len(hits['opponent_goal']) > 0: # Shoot at opponent goal if shot
-                self.set_intent(hits['opponent_goal'][0])
-                self.debugtext = 'Shooting' # Debug
-                print('Shooting') # Log
-                return
-            #  and ball_to_teamgoal < ball_to_opponentgoal and me_to_teamgoal < ball_to_teamgoal for bellow code testing switch with ballside()
-            hits = find_hits(self, targets)
-            if len(hits['center']) > 0 and ballside() == True and self.infront_of_ball:
-                self.set_intent(hits['center'][0])
-                self.debugtext = 'Centering Ball' # Debug
-                print('Centering Ball') # Log
-                return
-            hits = find_hits(self, targets)
-            if len(hits['team_goal']) > 0 and ballside() == True: # Shoot at sides of my goal if shot
-                self.set_intent(hits['team_goal'][0])
-                self.debugtext = 'Defending' # Debug
-                print('Defending') # Log
-                return  
-        elif ballside() == False and ball_to_opponent < ball_to_me:
-            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defensive Position!' # Debug
-            print('Defense Position!') # Log
-            if ball_to_opponent >= ball_to_me:
-                hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    return
-                elif len(hits['center']) > 0:
-                    self.set_intent(hits['center'][0])
-                    return
-                elif len(hits['team_goal']) > 0:
-                    self.set_intent(hits['team_goal'][0])
-                    return
-                else:
-                    self.set_intent(short_shot(self.foe_goal.location))
-                    return
-            return
+        checkshots()
+        
+# Null
         print('No Other Parameters Met')
+
+        if ballside() == True and ball_to_opponent < ball_to_me:
+            defensivepos()
+        elif ballside() == True and ball_to_opponent > ball_to_me:
+            checkshots()
+        elif ballside() == False  and ball_to_opponent > ball_to_me:
+            checkshots()
+        elif ballside() == False and ball_to_opponent < ball_to_me:
+            defensivepos()
+
         if self.intent == None:
-            self.set_intent(goto_defense(self.friend_goal.location + Vector3(0, 200*side(self.team), 0)))
-            self.debugtext = 'Defensive Position! | No Other Parameters Met' # Debug
-            print('Defensive Position! | No Other Parameters Met') # Log
-            if ball_to_opponent >= ball_to_me:
-                hits = find_hits(self, targets)
-                if len(hits['opponent_goal']) > 0:
-                    self.set_intent(hits['opponent_goal'][0])
-                    return
-                elif len(hits['center']) > 0:
-                    self.set_intent(hits['center'][0])
-                    return
-                elif len(hits['team_goal']) > 0:
-                    self.set_intent(hits['team_goal'][0])
-                    return
-                else:
-                    self.set_intent(short_shot(self.foe_goal.location))
-                    return
-            return          
+            checkshots()
+            # Add other checks here
+            defensivepos()
