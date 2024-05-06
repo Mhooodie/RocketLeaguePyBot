@@ -134,11 +134,65 @@ class GeneralIroh(GoslingAgent):
                 else:
                     pass # Opp Side
         
-        def ballcolumn():
+        def ballcolumn(): # Splits field into 3 columns left middle right
             if self.team == 1: # Orange
-                pass
+                if self.ball.location[0] < -893: # Left Returns 1
+                    return 1
+                elif self.ball.location[0] > -893 and self.ball.location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.ball.location[0] > 893: # Right Returns 3
+                    return 3
             else: # Blue
-                pass
+                if self.ball.location[0] > 893: # Left Returns 1
+                    return 1
+                elif self.ball.location[0] > -893 and self.ball.location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.ball.location[0] < -893: # Right Returns 3
+                    return 3     
+                
+        def mecolumn(): # Splits field into 3 columns left middle right
+            if self.team == 1: # Orange
+                if self.me.location[0] < -893: # Left Returns 1
+                    return 1
+                elif self.me.location[0] > -893 and self.me.location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.me.location[0] > 893: # Right Returns 3
+                    return 3
+            else: # Blue
+                if self.me.location[0] > 893: # Left Returns 1
+                    return 1
+                elif self.me.location[0] > -893 and self.me.location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.me.location[0] < -893: # Right Returns 3
+                    return 3
+
+        def foecolumn(): # Splits field into 3 columns left middle right
+            if self.team == 1: # Orange
+                if self.foes[0].location[0] < -893: # Left Returns 1
+                    return 1
+                elif self.foes[0].location[0] > -893 and self.foes[0].location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.foes[0].location[0] > 893: # Right Returns 3
+                    return 3
+            else: # Blue
+                if self.foes[0].location[0] > 893: # Left Returns 1
+                    return 1
+                elif self.foes[0].location[0] > -893 and self.foes[0].location[0] < 893: # Middle Returns 2
+                    return 2
+                elif self.foes[0].location[0] < -893: # Right Returns 3
+                    return 3      
+
+        def oppballside():
+            if self.team == 1: # Orange
+                if self.foes[0].location[0] > self.ball.location[0]: # On Left
+                    return 1
+                elif self.foes[0].location[0] < self.ball.location[0]: # On Right
+                    return 2                
+            else: # Blue           
+                if self.foes[0].location[0] < self.ball.location[0]: # On Left
+                    return 1
+                elif self.foes[0].location[0] > self.ball.location[0]: # On Right
+                    return 2
 
         def ballrow():
             if self.team == 1: # Orange
@@ -151,7 +205,7 @@ class GeneralIroh(GoslingAgent):
             # Put hits in here later so I can shorten code
 
         def iswithinrange(me, ball):
-            return me in range(ball - 150, ball + 150)
+            return me in range(ball - 150, ball + 150) # use local location range
         
         def checkshots():
             if len(hits['opponent_goal']) > 0:
@@ -223,8 +277,45 @@ class GeneralIroh(GoslingAgent):
                     return
             return
 
+        def backup():
+            self.set_intent(goto(self.friend_goal.location + Vector3(0, -500*side(self.team), 0)))
+            # if ballside() == True:
+            #     if ballcolumn() == 1:
+            #         self.set_intent(goto(self.friend_goal.right_post))
+            #         return
+            #     elif ballcolumn() == 2:
+            #         if oppballside() == 1:
+            #             self.set_intent(goto(self.friend_goal.right_post))
+            #             return
+            #         elif oppballside() == 2:
+            #             self.set_intent(goto(self.friend_goal.left_post))
+            #             return
+            #     elif ballcolumn() == 3:
+            #         self.set_intent(goto(self.friend_goal.left_post))
+            #         return
+            # else:
+            #     if ballcolumn() == 1:
+            #         self.set_intent(goto(self.friend_goal.right_post))
+            #         return
+            #     elif ballcolumn() == 2:
+            #         if oppballside() == 1:
+            #             self.set_intent(goto(self.friend_goal.right_post))
+            #             return
+            #         elif oppballside() == 2:
+            #             self.set_intent(goto(self.friend_goal.left_post))
+            #             return
+            #     elif ballcolumn() == 3:
+            #         self.set_intent(goto(self.friend_goal.left_post))
+            #         return    
+
+# Update Functions
+        oppballside()
+        foecolumn()
+        mecolumn()
+        ballcolumn()
+        ballside()
+
 # Camera, ACTION!
-        ballside() # Determines Ball Side: Team Side Returns True Opp Side Returns False
         self.print_debug() # On Screen Debug | Shows Debugtext
         if self.intent is not None: # If Intent Repears Until Cleared
             self.debug_intent() # On Screen Debug | Shows Intent
@@ -253,6 +344,8 @@ class GeneralIroh(GoslingAgent):
             defensivepos()  
 
 # Offensive Pre-Checks
+        #add column 2 check
+
         if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal: # Opponent Behind me Ball Infront
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
@@ -289,11 +382,9 @@ class GeneralIroh(GoslingAgent):
             return # Dont want to always get large boost especially if far so fix this later ***
             # angles = defaultPD(agent, local_target, self.direction)
 
-# Infront of Ball Actions
-
 # Offensive Actions
         if self.infront_of_ball25(): # If infront of ball move back
-            self.set_intent(goto(self.friend_goal.location + Vector3(0, -500*side(self.team), 0)))
+            backup()
             self.debugtext = 'Moving Back: Infront of Ball 25' # Debug
             print('Moving Back: Infront of Ball 25') # Log
             if self.ball.location[1] == self.me.location[1]: # Fix later -> if iswithinrange(self.me.location[0], self.ball.location[0]):
