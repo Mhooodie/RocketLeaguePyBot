@@ -347,7 +347,6 @@ class GeneralIroh(GoslingAgent):
         #add column 2 check
 
         if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal: # Opponent Behind me Ball Infront
-            hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
                 self.set_intent(hits['opponent_goal'][0])
                 self.debugtext = 'Shooting | Opponent Behind Me'
@@ -361,7 +360,6 @@ class GeneralIroh(GoslingAgent):
             
         if ball_to_me < ball_to_opponent and self.infront_of_ball5(): # If I am Closer to the ball and infront of it then shoot
             print('Closer & Infront of Ball 5')
-            hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
                 self.set_intent(hits['opponent_goal'][0])
                 self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
@@ -387,7 +385,7 @@ class GeneralIroh(GoslingAgent):
             backup()
             self.debugtext = 'Moving Back: Infront of Ball 25' # Debug
             print('Moving Back: Infront of Ball 25') # Log
-            if self.ball.location[1] == self.me.location[1]: # Fix later -> if iswithinrange(self.me.location[0], self.ball.location[0]):
+            if self.ball.location[0] == self.me.location[0]: # Fix later -> if iswithinrange(self.me.location[0], self.ball.location[0]):
                 self.set_intent(goto(self.friend_goal.right_post))
                 self.debugtext = 'Moving Back: Infront of Ball 25 & Ball In Way' # Debug
                 print('Moving Back: Infront of Ball 25 & Ball In Way') # Log
