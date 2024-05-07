@@ -227,6 +227,7 @@ class GeneralIroh(GoslingAgent):
         def checknet():
             if side(self.team) == -1: # If Blue Team
                 if self.ball.location[1] < -5140:
+                    self.clear_intent()
                     self.debugtext = 'Ball In Net' # Debug
                     print('Ball In Net') # Log
                     self.set_intent(goto(self.friend_goal.location + Vector3(0, -200, 0)))
@@ -279,36 +280,19 @@ class GeneralIroh(GoslingAgent):
 
         def backup():
             self.set_intent(goto(self.friend_goal.location + Vector3(0, -500*side(self.team), 0)))
-            # if ballside() == True:
-            #     if ballcolumn() == 1:
-            #         self.set_intent(goto(self.friend_goal.right_post))
-            #         return
-            #     elif ballcolumn() == 2:
-            #         if oppballside() == 1:
-            #             self.set_intent(goto(self.friend_goal.right_post))
-            #             return
-            #         elif oppballside() == 2:
-            #             self.set_intent(goto(self.friend_goal.left_post))
-            #             return
-            #     elif ballcolumn() == 3:
-            #         self.set_intent(goto(self.friend_goal.left_post))
-            #         return
-            # else:
-            #     if ballcolumn() == 1:
-            #         self.set_intent(goto(self.friend_goal.right_post))
-            #         return
-            #     elif ballcolumn() == 2:
-            #         if oppballside() == 1:
-            #             self.set_intent(goto(self.friend_goal.right_post))
-            #             return
-            #         elif oppballside() == 2:
-            #             self.set_intent(goto(self.friend_goal.left_post))
-            #             return
-            #     elif ballcolumn() == 3:
-            #         self.set_intent(goto(self.friend_goal.left_post))
-            #         return    
+            # Check cases where does not need to backup
+            #
+
+        # def stuckinnet():
+        #     if self.debugtext == 'Defensive Position!':
+        #         return
+        #     elif self.intent == short_shot or jump_shot or aerial_shot:
+        #         if 
+            
 
 # Update Functions
+        checknet() # Checks if Ball In Net, Hits out
+        #stuckinnet()
         oppballside()
         foecolumn()
         mecolumn()
@@ -332,7 +316,6 @@ class GeneralIroh(GoslingAgent):
             return
 
 # Pre-Logic Functions
-        checknet() # Checks if Ball In Net, Hits out
         # If me | opp | ball | teamnet ZOOM at net and block
         demo() # Check if Opponent Demoed
 
