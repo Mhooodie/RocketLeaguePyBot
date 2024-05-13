@@ -32,6 +32,8 @@ class GeneralIroh(GoslingAgent):
             me_to_target_boost = abs(self.me.location - target_boost.location).magnitude()
 
 # Setup Functions'
+
+        # Could organize to have location checks and action checks and other
         def KickoffInitiation(kickoff_type):
             print('Kickoff Initialized')
             if kickoff_type == 0: # Wide Diagnonal / Corners
@@ -298,6 +300,7 @@ class GeneralIroh(GoslingAgent):
         mecolumn()
         ballcolumn()
         ballside()
+        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.Compliments_NiceShot)
 
 # Camera, ACTION!
         self.print_debug() # On Screen Debug | Shows Debugtext
