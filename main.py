@@ -28,13 +28,57 @@ class GeneralIroh(GoslingAgent):
         me_to_opponentgoal = abs(self.me.location - self.foe_goal.location).magnitude()
         opponent_to_teamgoal = abs(self.foes[0].location - self.friend_goal.location).magnitude()
         opponent_to_oppgoal = abs(self.foes[0].location - self.foe_goal.location).magnitude()
+        team = side(self.team) # -1 for blue 1 for orange
+        infront_of_ball25 = self.infront_of_ball25()
+        infront_of_ball5 = self.infront_of_ball5()
+        infront_of_ball = self.infront_of_ball()
         if target_boost is not None:
             me_to_target_boost = abs(self.me.location - target_boost.location).magnitude()
 
+        basicretreat = self.friend_goal.location + Vector3(0, -500*side(self.team), 0)
+
+        retreatTM1 = self.friend_goal.location + Vector3(0, -500*side(self.team), 0)
+        retreatTM2 = self.friend_goal.location + Vector3(0, -1700*side(self.team), 0)
+        retreatTM3 = self.friend_goal.location + Vector3(0, -2900*side(self.team), 0)
+        retreatTM4 = self.friend_goal.location + Vector3(0, -3500*side(self.team), 0)
+
+        retreatTL1 = self.friend_goal.location + Vector3(-2048*side(self.team), -500*side(self.team), 0)
+        retreatTL2 = self.friend_goal.location + Vector3(-2048*side(self.team), -1700*side(self.team), 0)
+        retreatTL3 = self.friend_goal.location + Vector3(-2048*side(self.team), -2900*side(self.team), 0)
+        retreatTL4 = self.friend_goal.location + Vector3(-2048*side(self.team), -3500*side(self.team), 0)
+
+        retreatTR1 = self.friend_goal.location + Vector3(2048*side(self.team), -500*side(self.team), 0)
+        retreatTR2 = self.friend_goal.location + Vector3(2048*side(self.team), -1700*side(self.team), 0)
+        retreatTR3 = self.friend_goal.location + Vector3(2048*side(self.team), -2900*side(self.team), 0)
+        retreatTR4 = self.friend_goal.location + Vector3(2048*side(self.team), -3500*side(self.team), 0)
+
+        retreatmidcenter = Vector3(0, 0, 0)
+        retreatmidleft = Vector3(-3584*side(self.team), 0, 0)
+        retreatmidright = Vector3(3584*side(self.team), 0, 0)
+        retreatmidleftmid = Vector3(-1792*side(self.team), 0, 0)
+        retreatmidrightmid = Vector3(1792*side(self.team), 0, 0)
+
+        # Team - Foe Reatreat Points
+
+        retreatFM1 = self.friend_goal.location + Vector3(0, 500*side(self.team), 0)
+        retreatFM2 = self.friend_goal.location + Vector3(0, 1700*side(self.team), 0)
+        retreatFM3 = self.friend_goal.location + Vector3(0, 2900*side(self.team), 0)
+        retreatFM4 = self.friend_goal.location + Vector3(0, 3500*side(self.team), 0)
+
+        retreatFL1 = self.friend_goal.location + Vector3(-2048*side(self.team), 500*side(self.team), 0)
+        retreatFL2 = self.friend_goal.location + Vector3(-2048*side(self.team), 1700*side(self.team), 0)
+        retreatFL3 = self.friend_goal.location + Vector3(-2048*side(self.team), 2900*side(self.team), 0)
+        retreatFL4 = self.friend_goal.location + Vector3(-2048*side(self.team), 3500*side(self.team), 0)
+
+        retreatFR1 = self.friend_goal.location + Vector3(2048*side(self.team), 500*side(self.team), 0)
+        retreatFR2 = self.friend_goal.location + Vector3(2048*side(self.team), 1700*side(self.team), 0)
+        retreatFR3 = self.friend_goal.location + Vector3(2048*side(self.team), 2900*side(self.team), 0)
+        retreatFR4 = self.friend_goal.location + Vector3(2048*side(self.team), 3500*side(self.team), 0)
+
 # Setup Functions'
 
-        # Could organize to have location checks and action checks and other
         def KickoffInitiation(kickoff_type):
+            #Initializes Kickoff
             print('Kickoff Initialized')
             if kickoff_type == 0: # Wide Diagnonal / Corners
                 if self.ball_local[1] > 0:
@@ -70,13 +114,14 @@ class GeneralIroh(GoslingAgent):
                 return
             
         def demo():
+            #Foe Demoed Actions
             if self.me.boost > 80 and ball_to_teamgoal < opponent_to_teamgoal < me_to_teamgoal and ballside() == True:
                 self.debugtext = 'BLOW EM TO SMITHERINES!' # Debug
                 print('BLOW EM TO SMITHERINES!') # Log
                 self.set_intent(goto_demo(self.foes[0].location)) # defaultThrottle(agent, 2300) Fix gotodemo
                 return
             if self.foes[0].demolished:
-                if self.infront_of_ball25(): # Infront of ball means closer to opponent net
+                if infront_of_ball25 == False: # Infront of ball means closer to opponent net
                     self.set_intent(goto(self.friend_goal.location))
                     self.debugtext = 'Target Down | Repositioning 25' # Debug
                     print('Target Down | Repositioning 25') # Log  
@@ -215,7 +260,7 @@ class GeneralIroh(GoslingAgent):
                 self.debugtext = 'Shooting'
                 print('Shooting')
                 return
-            if len(hits['center']) > 0 and ballside() == True and self.infront_of_ball:
+            if len(hits['center']) > 0 and ballside() == True and infront_of_ball == False:
                 self.set_intent(hits['center'][0])
                 self.debugtext = 'Centering Ball'
                 print('Centering Ball')
@@ -281,9 +326,8 @@ class GeneralIroh(GoslingAgent):
             return
 
         def backup():
-            self.set_intent(goto(self.friend_goal.location + Vector3(0, -500*side(self.team), 0)))
+            self.set_intent(goto(basicretreat))
             # Check cases where does not need to backup
-            #
 
         # def stuckinnet():
         #     if self.debugtext == 'Defensive Position!':
@@ -293,20 +337,29 @@ class GeneralIroh(GoslingAgent):
             
 
 # Update Functions
-        checknet() # Checks if Ball In Net, Hits out
-        #stuckinnet()
-        oppballside()
-        foecolumn()
-        mecolumn()
-        ballcolumn()
-        ballside()
-        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, QuickChats.Compliments_NiceShot)
+        if self.kickoff_flag == False: 
+            checknet() # Checks if Ball In Net, Hits out
+            #stuckinnet()
+            oppballside()
+            foecolumn()
+            mecolumn()
+            ballcolumn()
+            ballside()
+            # print(f'0 {infront_of_ball}')
+            # print(f'5 {infront_of_ball5}')
+            # print(f'25 {infront_of_ball25}')
 
 # Camera, ACTION!
         self.print_debug() # On Screen Debug | Shows Debugtext
         if self.intent is not None: # If Intent Repears Until Cleared
             self.debug_intent() # On Screen Debug | Shows Intent
             return
+
+#Chats
+        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, Custom_Toxic_GitGut)
+        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, Custom_Excuses_Lag)
+        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, Custom_Compliments_proud)
+        #self.send_quick_chat(QuickChats.CHAT_EVERYONE, Custom_Toxic_404NoSkill)
 
 # Kickoff Action
         if self.kickoff_flag:
@@ -330,7 +383,14 @@ class GeneralIroh(GoslingAgent):
             defensivepos()  
 
 # Offensive Pre-Checks
-        #add column 2 check
+        if ballside() == True and ball_to_me < ball_to_opponent and ball_to_teamgoal < 2000:
+            infront_of_ball25 = False
+            infront_of_ball5 = False
+            infront_of_ball = False
+
+        if self.ball.location[2] > 880 and ball_to_opponentgoal < 1000 and self.ball.location[0] > 900*side(self.team) and self.ball.location[0] < -900*side(self.team):
+            self.debugtext = 'Ball Falling From Above Goal'
+            print('Ball Falling From Above Goal')
 
         if me_to_opponentgoal < opponent_to_oppgoal and ball_to_opponentgoal < me_to_opponentgoal: # Opponent Behind me Ball Infront
             hits = find_hits(self, targets)
@@ -339,13 +399,13 @@ class GeneralIroh(GoslingAgent):
                 self.debugtext = 'Shooting | Opponent Behind Me'
                 print('Shooting | Opponent Behind Me')
                 return
-            elif self.infront_of_ball and opponent_to_oppgoal > 4000:
+            elif infront_of_ball == False and opponent_to_oppgoal > 4000:
                 self.set_intent(short_shot(self.foe_goal.location + Vector3(0, -600*side(self.team), 0)))
                 self.debugtext = 'Short Shot | Center Opp Goal'
                 hits = find_hits(self, targets)
                 return
             
-        if ball_to_me < ball_to_opponent and self.infront_of_ball5(): # If I am Closer to the ball and infront of it then shoot
+        if ball_to_me < ball_to_opponent and infront_of_ball5 == False: # If I am Closer to the ball and infront of it then shoot
             print('Closer & Infront of Ball 5')
             hits = find_hits(self, targets)
             if len(hits['opponent_goal']) > 0:
@@ -353,7 +413,7 @@ class GeneralIroh(GoslingAgent):
                 self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
                 print('Shooting | Closer, More Boost, Infront of Ball 5')
                 return
-            elif ball_to_me < ball_to_opponent and self.infront_of_ball5():
+            elif ball_to_me < ball_to_opponent and infront_of_ball5 == False:
                 self.set_intent(short_shot(self.foe_goal.location + Vector3(0, -600*side(self.team), 0)))
                 self.debugtext = 'Short Shot | Closer, More Boost, Infront of Ball 5' 
                 print('Short Shot | Closer, More Boost, Infront of Ball 5')
@@ -369,7 +429,7 @@ class GeneralIroh(GoslingAgent):
             # angles = defaultPD(agent, local_target, self.direction)
 
 # Offensive Actions
-        if self.infront_of_ball25(): # If infront of ball move back
+        if infront_of_ball25 == True: # If infront of ball move back
             backup()
             self.debugtext = 'Moving Back: Infront of Ball 25' # Debug
             print('Moving Back: Infront of Ball 25') # Log

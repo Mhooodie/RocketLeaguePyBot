@@ -529,6 +529,7 @@ class goto_kickoff():
         local_target = agent.me.local(final_target - agent.me.location)
 
         angles = defaultPD(agent, local_target, self.direction)
+        velocity = 1+agent.me.velocity.magnitude()
 
         if distance_remaining < 650: # was 350
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball
@@ -669,14 +670,11 @@ class kickoff_short2():
             print('Speedflip Right') # Log
             print(agent.me.local)
             agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
-            # agent.set_intent(kickoff()) # add speed flip shit here go left flip right
-            # Bit different than left kickoff for some reason?
             return
         else:
             print('Speedflip Left') # Log
             print(agent.me.local)
-            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1700*side(agent.team), 0, 0) - agent.me.location), True)) # was 1024
-            # agent.set_intent(kickoff()) # add speed flip shit here go right flip left
+            agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1700*side(agent.team), 0, 0) - agent.me.location), True))
             return       
 
 class kickoff_center(): # Back Center
