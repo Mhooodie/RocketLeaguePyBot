@@ -505,14 +505,15 @@ class goto_kickoff():
         self.direction = direction
 
     def run(self, agent):
+        print('GotoKickoff')
         defaultThrottle(agent, 2300, self.direction)
         car_to_target = self.target - agent.me.location
         distance_remaining = car_to_target.flatten().magnitude()
 
-        agent.line(self.target - Vector3(0, 0, 500),
-                   self.target + Vector3(0, 0, 500), [255, 0, 255])
+        agent.line(self.target - Vector3(0, 0, 500), self.target + Vector3(0, 0, 500), [255, 0, 255])
 
         if self.vector != None:
+            print('if1')
             side_of_vector = sign(self.vector.cross(
                 (0, 0, 1)).dot(car_to_target))
             car_to_target_perp = car_to_target.cross(
@@ -521,10 +522,8 @@ class goto_kickoff():
                 self.vector) * distance_remaining / 3.14
             final_target = self.target + (car_to_target_perp * adjustment)
         else:
+            print('if2')
             final_target = self.target
-
-        if abs(agent.me.location[1]) > 5150:
-            final_target[0] = cap(final_target[0], -750, 750)
 
         local_target = agent.me.local(final_target - agent.me.location)
 
@@ -559,9 +558,6 @@ class goto_kickoff_mid():
             final_target = self.target + (car_to_target_perp * adjustment)
         else:
             final_target = self.target
-
-        if abs(agent.me.location[1]) > 5150:
-            final_target[0] = cap(final_target[0], -750, 750)
 
         local_target = agent.me.local(final_target - agent.me.location)
 
@@ -645,10 +641,8 @@ class kickoff_short(): # Back Sides | Need to figure out which side, left or rig
         target = agent.ball.location + Vector3(0, 200*side(agent.team), 0)
         if ball_local[1] < 0: # R
             agent.set_intent(goto_kickoff(Vector3(45*side(agent.team), 2816*side(agent.team), 0)))
-            return
         else: # L
             agent.set_intent(goto_kickoff(Vector3(-45*side(agent.team), 2816*side(agent.team), 0)))
-            return   
 
 # Does not jump like wide and center to hit center of ball, hit from bottom so go over oppononent
 # Flips into boost / before boost
@@ -670,12 +664,10 @@ class kickoff_short2():
             print('Speedflip Right') # Log
             print(agent.me.local)
             agent.set_intent(kickoff_flip(agent.me.local(Vector3(1700*side(agent.team), 0, 0) - agent.me.location), True))
-            return
         else:
             print('Speedflip Left') # Log
             print(agent.me.local)
             agent.set_intent(kickoff_flip(agent.me.local(Vector3(-1700*side(agent.team), 0, 0) - agent.me.location), True))
-            return       
 
 class kickoff_center(): # Back Center
     def run(self, agent): # If can add boost through flip later keep otherwise add extra flip to end
@@ -747,10 +739,6 @@ class goto_kickoff_wide():
 
         if abs(agent.me.location[1]) > 5150:
             final_target[0] = cap(final_target[0], -750, 750)
-
-        local_target = agent.me.local(final_target - agent.me.location)
-
-        angles = defaultPD(agent, local_target, self.direction)
 
         if distance_remaining < 350: # was 350
             # Switch intent to speed flip then kickoff like normal | dont flip to center of ball

@@ -84,12 +84,12 @@ class GeneralIroh(GoslingAgent):
                 if self.ball_local[1] > 0:
                     self.debugtext = 'Kickoff off from: Right Wide Diagonal' # Debug
                     print('Kickoff off from: Right Wide Diagnonal') # Log
-                    self.set_intent(kickoff_wide())
+                    self.set_intent(kickoff())
                     return
                 else:
                     self.debugtext = 'Kickoff off from: Left Wide Diagonal' # Debug
                     print('Kickoff off from: Left Wide Diagnonal') # Log
-                    self.set_intent(kickoff_wide())
+                    self.set_intent(kickoff())
                     return
             elif kickoff_type == 1: # Short Diagonal / Back Sides
                 if self.ball_local[1] < 0:
@@ -439,7 +439,6 @@ class GeneralIroh(GoslingAgent):
                 print('Moving Back: Infront of Ball 25 & Ball In Way') # Log
                 return
             return
-        
         checkshots()
         
 # Null
@@ -454,7 +453,6 @@ class GeneralIroh(GoslingAgent):
         elif ballside() == False and ball_to_opponent < ball_to_me:
             defensivepos()
 
-        if self.intent == None:
-            checkshots()
-            # Add other checks here
-            defensivepos()
+        # checkshots()
+        # defensivepos() THESE WILL BREAK KICKOFF
+        self.set_intent(short_shot(self.foe_goal.location))
