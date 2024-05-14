@@ -426,6 +426,7 @@ class GeneralIroh(GoslingAgent):
 # Offensive Actions
         if infront_of_ball25 == True: # If infront of ball move back
             backup()
+            checkshots()
             self.debugtext = 'Moving Back: Infront of Ball 25' # Debug
             print('Moving Back: Infront of Ball 25') # Log
             if self.ball.location[1] == self.me.location[1]: # Fix later -> if iswithinrange(self.me.location[0], self.ball.location[0]):
