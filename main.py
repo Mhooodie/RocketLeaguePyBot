@@ -376,17 +376,12 @@ class GeneralIroh(GoslingAgent):
         demo() # Check if Opponent Demoed
 
 # Defensive Actions
-        if ball_to_teamgoal <= 2000 and ballside() == True:
+        if ball_to_teamgoal <= 2500 and ballside() == True:
             defensivepos()
             
-        if ball_to_opponent < ball_to_me and ballside() == True:
-            defensivepos()  
+
 
 # Offensive Pre-Checks
-        if ballside() == True and ball_to_me < ball_to_opponent and ball_to_teamgoal < 2000:
-            infront_of_ball25 = False
-            infront_of_ball5 = False
-            infront_of_ball = False
 
         if self.ball.location[2] > 880 and ball_to_opponentgoal < 1000 and self.ball.location[0] > 900*side(self.team) and self.ball.location[0] < -900*side(self.team):
             self.debugtext = 'Ball Falling From Above Goal'
@@ -455,4 +450,31 @@ class GeneralIroh(GoslingAgent):
 
         # checkshots()
         # defensivepos() THESE WILL BREAK KICKOFF
-        self.set_intent(short_shot(self.foe_goal.location))
+        # if self.intent == None:
+        #     defensivepos()
+        # if ballside() == True or ballside() == False:
+        #     defensivepos()
+        if self.infront_of_ball == False:
+            if len(hits['opponent_goal']) > 0:
+                self.set_intent(hits['opponent_goal'][0])
+                self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
+                print('Shooting | Closer, More Boost, Infront of Ball 5')
+                return
+            else:
+                self.set_intent(short_shot(self.foe_goal.location))
+        if ballside() == False:
+            if len(hits['opponent_goal']) > 0:
+                self.set_intent(hits['opponent_goal'][0])
+                self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
+                print('Shooting | Closer, More Boost, Infront of Ball 5')
+                return
+            else:
+                self.set_intent(short_shot(self.foe_goal.location))
+        if ballside == True:
+            if len(hits['opponent_goal']) > 0:
+                self.set_intent(hits['opponent_goal'][0])
+                self.debugtext = 'Shooting | Closer, More Boost, Infront of Ball 5'
+                print('Shooting | Closer, More Boost, Infront of Ball 5')
+                return
+            else:
+                defensivepos()
